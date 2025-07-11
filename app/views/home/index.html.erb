@@ -1,0 +1,184 @@
+<% unless user_signed_in? %>
+<!-- Hero Section -->
+<section class="bg-primary text-white py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <h1 class="display-4 fw-bold mb-4">
+          Democracy in Action
+        </h1>
+        <p class="lead mb-4">
+          Join our participatory budgeting platform where every voice matters. 
+          Propose projects, vote on priorities, and shape your community's future.
+        </p>
+        <div class="d-flex gap-3">
+          <%= link_to new_user_registration_path, class: "btn btn-light btn-lg" do %>
+            <i class="fas fa-user-plus me-2"></i>
+            Get Started
+          <% end %>
+          <%= link_to budgets_path, class: "btn btn-outline-light btn-lg" do %>
+            <i class="fas fa-eye me-2"></i>
+            Explore Budgets
+          <% end %>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="bg-light bg-opacity-20 rounded-3 p-4">
+              <i class="fas fa-money-bill-wave fa-2x mb-3"></i>
+              <h3 class="h4 mb-2"><%= @total_budgets %></h3>
+              <p class="mb-0">Active Budgets</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light bg-opacity-20 rounded-3 p-4">
+              <i class="fas fa-project-diagram fa-2x mb-3"></i>
+              <h3 class="h4 mb-2"><%= @total_projects %></h3>
+              <p class="mb-0">Total Projects</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light bg-opacity-20 rounded-3 p-4">
+              <i class="fas fa-poll fa-2x mb-3"></i>
+              <h3 class="h4 mb-2"><%= @total_votes %></h3>
+              <p class="mb-0">Votes Cast</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light bg-opacity-20 rounded-3 p-4">
+              <i class="fas fa-users fa-2x mb-3"></i>
+              <h3 class="h4 mb-2"><%= User.count %></h3>
+              <p class="mb-0">Participants</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="h1 mb-3">How It Works</h2>
+      <p class="lead text-muted">
+        Transparent, democratic, and efficient budget allocation in three simple steps
+      </p>
+    </div>
+    
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="text-center">
+          <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+            <i class="fas fa-lightbulb fa-2x text-primary"></i>
+          </div>
+          <h3 class="h4 mb-3">Propose Projects</h3>
+          <p class="text-muted">
+            Submit your ideas for community improvement projects with detailed impact assessments and budget requirements.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-center">
+          <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+            <i class="fas fa-hand-paper fa-2x text-success"></i>
+          </div>
+          <h3 class="h4 mb-3">Vote & Prioritize</h3>
+          <p class="text-muted">
+            Participate in multi-phase voting to prioritize projects based on community needs and impact potential.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-center">
+          <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+            <i class="fas fa-cogs fa-2x text-warning"></i>
+          </div>
+          <h3 class="h4 mb-3">Track Implementation</h3>
+          <p class="text-muted">
+            Monitor approved projects through implementation phases with real-time progress updates and impact reporting.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Active Budgets Preview -->
+<% if @active_budgets.present? %>
+<section class="bg-light py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="h3 mb-0">Active Budgets</h2>
+      <%= link_to budgets_path, class: "btn btn-primary" do %>
+        View All <i class="fas fa-arrow-right ms-1"></i>
+      <% end %>
+    </div>
+    
+    <div class="row g-4">
+      <% @active_budgets.each do |budget| %>
+        <div class="col-lg-4">
+          <div class="card h-100 budget-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="card-title mb-0"><%= budget.title %></h5>
+                <span class="badge bg-success">Active</span>
+              </div>
+              <p class="card-text text-muted">
+                <%= truncate(budget.description, length: 100) %>
+              </p>
+              <div class="mb-3">
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                  <span>Budget Progress</span>
+                  <span><%= budget.progress_percentage %>%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar" style="width: <%= budget.progress_percentage %>%"></div>
+                </div>
+              </div>
+              <div class="row g-2 text-center">
+                <div class="col-6">
+                  <div class="small text-muted">Total Budget</div>
+                  <div class="fw-semibold"><%= format_currency(budget.total_amount) %></div>
+                </div>
+                <div class="col-6">
+                  <div class="small text-muted">Categories</div>
+                  <div class="fw-semibold"><%= budget.budget_categories.count %></div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer bg-transparent">
+              <%= link_to budget, class: "btn btn-outline-primary w-100" do %>
+                <i class="fas fa-eye me-1"></i> View Details
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+<% end %>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+  <div class="container text-center">
+    <h2 class="h1 mb-4">Ready to Make a Difference?</h2>
+    <p class="lead mb-4">
+      Join thousands of participants already shaping their communities through participatory budgeting
+    </p>
+    <%= link_to new_user_registration_path, class: "btn btn-light btn-lg" do %>
+      <i class="fas fa-rocket me-2"></i>
+      Start Participating Today
+    <% end %>
+  </div>
+</section>
+
+<% else %>
+<!-- Redirect logged-in users to dashboard -->
+<script>
+  window.location.href = '<%= dashboard_path %>';
+</script>
+<% end %>

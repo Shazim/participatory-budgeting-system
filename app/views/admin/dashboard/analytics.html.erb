@@ -1,0 +1,51 @@
+<!-- Page Header -->
+<div class="bg-light py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-chart-pie me-2"></i>
+      Analytics
+    </h1>
+    <p class="text-muted mb-0">Visual insights into system data.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <div class="row g-4">
+    <!-- Projects by Status -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Projects by Status</h6>
+        </div>
+        <div class="card-body">
+          <%= pie_chart @projects_by_status, donut: true, colors: ['#ffc107', '#28a745', '#dc3545', '#007bff'] %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Votes by Category -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Votes by Category</h6>
+        </div>
+        <div class="card-body">
+          <%= bar_chart @votes_by_category, colors: ['#17a2b8'] %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Budget Allocation -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Budget Allocation by Category (%)</h6>
+        </div>
+        <div class="card-body">
+          <%= pie_chart @budget_allocation, donut: true %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

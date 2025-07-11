@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Participatory Budgeting System</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div class="container">
+        <%= link_to root_path, class: "navbar-brand d-flex align-items-center" do %>
+          <i class="fas fa-vote-yea me-2 text-primary"></i>
+          <span class="fw-bold">Participatory Budget</span>
+        <% end %>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <% if user_signed_in? %>
+              <li class="nav-item">
+                <%= link_to dashboard_path, class: "nav-link #{'active' if current_page?(dashboard_path)}" do %>
+                  <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to budgets_path, class: "nav-link #{'active' if controller_name == 'budgets'}" do %>
+                  <i class="fas fa-money-bill-wave me-1"></i> Budgets
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to budget_projects_path, class: "nav-link #{'active' if controller_name == 'budget_projects'}" do %>
+                  <i class="fas fa-project-diagram me-1"></i> Projects
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to my_votes_votes_path, class: "nav-link #{'active' if controller_name == 'votes'}" do %>
+                  <i class="fas fa-poll me-1"></i> My Votes
+                <% end %>
+              </li>
+              <% if current_user.admin? %>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle #{'active' if params[:controller]&.start_with?('admin')}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-cog me-1"></i> Admin
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><%= link_to admin_root_path, class: "dropdown-item" do %>
+                      <i class="fas fa-chart-bar me-2"></i> Dashboard
+                    <% end %></li>
+                    <li><%= link_to admin_budget_categories_path, class: "dropdown-item" do %>
+                      <i class="fas fa-tags me-2"></i> Category Limits
+                    <% end %></li>
+                    <li><%= link_to admin_dashboard_category_monitoring_path, class: "dropdown-item" do %>
+                      <i class="fas fa-chart-pie me-2"></i> Category Monitoring
+                    <% end %></li>
+                    <li><%= link_to admin_dashboard_analytics_path, class: "dropdown-item" do %>
+                      <i class="fas fa-analytics me-2"></i> Analytics
+                    <% end %></li>
+                    <li><%= link_to admin_dashboard_reports_path, class: "dropdown-item" do %>
+                      <i class="fas fa-file-alt me-2"></i> Reports
+                    <% end %></li>
+                  </ul>
+                </li>
+              <% end %>
+            <% else %>
+              <li class="nav-item">
+                <%= link_to budgets_path, class: "nav-link" do %>
+                  <i class="fas fa-money-bill-wave me-1"></i> Browse Budgets
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+
+          <ul class="navbar-nav">
+            <% if user_signed_in? %>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <div class="avatar-circle me-2">
+                    <%= current_user.name.first.upcase %>
+                  </div>
+                  <span><%= current_user.name %></span>
+                  <% if current_user.admin? %>
+                    <span class="badge bg-primary ms-2">Admin</span>
+                  <% end %>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><%= link_to edit_user_registration_path, class: "dropdown-item" do %>
+                    <i class="fas fa-user-edit me-2"></i> Edit Profile
+                  <% end %></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <%= link_to destroy_user_session_path, class: "dropdown-item text-danger", data: { turbo_method: :delete } do %>
+                      <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    <% end %>
+                  </li>
+                </ul>
+              </li>
+            <% else %>
+              <li class="nav-item">
+                <%= link_to new_user_session_path, class: "nav-link" do %>
+                  <i class="fas fa-sign-in-alt me-1"></i> Login
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to new_user_registration_path, class: "btn btn-primary ms-2" do %>
+                  <i class="fas fa-user-plus me-1"></i> Sign Up
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <% if notice || alert %>
+      <div class="container mt-3">
+        <% if notice %>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <%= notice %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <%= alert %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Current Budget Context (if applicable) -->
+    <% if current_budget %>
+      <div class="bg-light border-bottom">
+        <div class="container py-2">
+          <small class="text-muted d-flex align-items-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Currently viewing: 
+            <%= link_to current_budget.title, current_budget, class: "fw-semibold text-decoration-none ms-1" %>
+            <span class="ms-2 text-muted">|</span>
+            <span class="ms-2">
+              <span class="badge bg-<%= current_budget.status == 'active' ? 'success' : 'secondary' %>">
+                <%= current_budget.status.humanize %>
+              </span>
+            </span>
+            <% if current_budget.current_phase %>
+              <span class="ms-2 text-muted">|</span>
+              <span class="ms-2">
+                Phase: <strong><%= current_budget.current_phase.name %></strong>
+              </span>
+            <% end %>
+          </small>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+      <%= yield %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light mt-5">
+      <div class="container py-4">
+        <div class="row">
+          <div class="col-md-6">
+            <h5 class="mb-3">
+              <i class="fas fa-vote-yea me-2"></i>
+              Participatory Budgeting System
+            </h5>
+            <p class="text-light mb-0">
+              Empowering communities through transparent and democratic budget allocation.
+            </p>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <div class="col-6">
+                <h6 class="mb-3">Quick Links</h6>
+                <ul class="list-unstyled">
+                  <li><%= link_to "Active Budgets", budgets_path, class: "text-light text-decoration-none" %></li>
+                  <li><%= link_to "Project Gallery", budget_projects_path, class: "text-light text-decoration-none" %></li>
+                  <% if user_signed_in? %>
+                    <li><%= link_to "My Dashboard", dashboard_path, class: "text-light text-decoration-none" %></li>
+                  <% end %>
+                </ul>
+              </div>
+              <div class="col-6">
+                <h6 class="mb-3">Support</h6>
+                <ul class="list-unstyled">
+                  <li><a href="#" class="text-light text-decoration-none">Help Center</a></li>
+                  <li><a href="#" class="text-light text-decoration-none">Contact Us</a></li>
+                  <li><a href="#" class="text-light text-decoration-none">Guidelines</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr class="my-4">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <small>&copy; <%= Date.current.year %> Participatory Budgeting System. All rights reserved.</small>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <small class="text-muted">
+              Built with Ruby on Rails <%= Rails.version %>
+            </small>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Custom Styles -->
+    <style>
+      .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      
+      main {
+        min-height: calc(100vh - 200px);
+      }
+      
+      .navbar-brand:hover {
+        color: var(--primary-blue) !important;
+      }
+      
+      .nav-link.active {
+        color: var(--primary-blue) !important;
+        font-weight: 600;
+      }
+    </style>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

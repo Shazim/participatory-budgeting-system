@@ -1,0 +1,49 @@
+<!-- Page Header -->
+<div class="bg-light py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-chart-pie me-2"></i>
+      Budget Category Monitoring
+    </h1>
+    <p class="text-muted mb-0">Track spending and allocation across all budget categories.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <% @budgets.each do |budget| %>
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0"><%= budget.title %></h5>
+        <p class="mb-0 text-muted small">Total: <%= number_to_currency(budget.total_amount) %></p>
+      </div>
+      <div class="card-body">
+        <% if budget.budget_categories.any? %>
+          <% budget.budget_categories.each do |category| %>
+            <div class="mb-4">
+              <h6><%= category.name %></h6>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">
+                  <%= number_to_currency(category.total_allocated_amount) %> / <%= number_to_currency(category.spending_limit_amount) %>
+                </span>
+                <span><%= number_to_percentage(category.utilization_percentage, precision: 2) %></span>
+              </div>
+              <div class="progress mt-1" style="height: 20px;">
+                <div class="progress-bar bg-<%= category.status_color %>"
+                     role="progressbar"
+                     style="width: <%= category.utilization_percentage %>%;"
+                     aria-valuenow="<%= category.utilization_percentage %>"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                  <%= number_to_percentage(category.utilization_percentage, precision: 1) %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">No categories found for this budget.</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div> 

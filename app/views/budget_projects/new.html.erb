@@ -1,0 +1,120 @@
+<!-- Page Header -->
+<div class="bg-primary text-white py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-lightbulb me-2"></i>
+      Submit a New Project
+    </h1>
+    <p class="opacity-75 mb-0">Share your idea with the community and get it funded.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="card">
+        <div class="card-body p-4 p-md-5">
+          <%= form_with(model: @budget_project, local: true) do |form| %>
+            <% if form.object.errors.any? %>
+              <div class="alert alert-danger">
+                <h6 class="alert-heading">Please fix the following errors:</h6>
+                <ul>
+                  <% form.object.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <!-- Main Project Details -->
+            <h5 class="mb-3">1. Project Details</h5>
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <%= form.label :title, class: 'form-label' %>
+                <%= form.text_field :title, class: 'form-control', placeholder: 'e.g., Downtown Pedestrian Bridge' %>
+              </div>
+              <div class="col-md-12 mb-3">
+                <%= form.label :description, class: 'form-label' %>
+                <%= form.text_area :description, rows: 5, class: 'form-control', placeholder: 'Describe your project in detail...' %>
+              </div>
+              <div class="col-md-6 mb-3">
+                <%= form.label :budget_category_id, "Category", class: 'form-label' %>
+                <%= form.collection_select :budget_category_id, @available_categories, :id, :name, { prompt: 'Select a Category' }, class: 'form-select' %>
+              </div>
+              <div class="col-md-6 mb-3">
+                <%= form.label :amount, "Estimated Amount", class: 'form-label' %>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <%= form.number_field :amount, class: 'form-control', placeholder: 'e.g., 450000' %>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Impact Metrics Section -->
+            <h5 class="mb-3">2. Impact Metrics</h5>
+            <p class="text-muted small">Help us understand the potential impact of your project.</p>
+
+            <%= form.fields_for :impact_metric do |impact_fields| %>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <%= impact_fields.label :estimated_beneficiaries, "Estimated Beneficiaries", class: 'form-label' %>
+                  <%= impact_fields.number_field :estimated_beneficiaries, class: 'form-control', placeholder: 'e.g., 15000' %>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <%= impact_fields.label :timeline_months, "Timeline (in months)", class: 'form-label' %>
+                  <%= impact_fields.number_field :timeline_months, class: 'form-control', placeholder: 'e.g., 18' %>
+                </div>
+              </div>
+              <div class="mb-4">
+                <%= impact_fields.label :sustainability_score, class: 'form-label' do %>
+                  Sustainability Score: <span class="fw-bold" id="sustainability-score-value"><%= impact_fields.object.sustainability_score || 5 %></span>/10
+                <% end %>
+                <%= impact_fields.range_field :sustainability_score, in: 0..10, step: 0.1, class: 'form-range', id: 'sustainability-score-slider' %>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <%= impact_fields.label :environmental_impact, class: 'form-label' %>
+                  <%= impact_fields.select :environmental_impact, ImpactMetric.environmental_impacts.keys.map { |k| [k.humanize.titleize, k] }, {}, class: 'form-select' %>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <%= impact_fields.label :social_impact, class: 'form-label' %>
+                  <%= impact_fields.select :social_impact, ImpactMetric.social_impacts.keys.map { |k| [k.humanize.titleize, k] }, {}, class: 'form-select' %>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <%= impact_fields.label :economic_impact, class: 'form-label' %>
+                  <%= impact_fields.select :economic_impact, ImpactMetric.economic_impacts.keys.map { |k| [k.humanize.titleize, k] }, {}, class: 'form-select' %>
+                </div>
+              </div>
+            <% end %>
+
+            <div class="d-grid mt-4">
+              <%= form.submit 'Submit Project for Review', class: 'btn btn-primary btn-lg' %>
+            </div>
+            <div class="text-center mt-2">
+              <%= link_to 'Cancel', budget_projects_path, class: 'text-muted' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    const slider = document.getElementById('sustainability-score-slider');
+    const valueDisplay = document.getElementById('sustainability-score-value');
+    if (slider && valueDisplay) {
+      const updateSliderValue = () => {
+        valueDisplay.textContent = slider.value;
+      };
+      
+      updateSliderValue();
+      slider.addEventListener('input', updateSliderValue);
+    }
+  });
+</script>

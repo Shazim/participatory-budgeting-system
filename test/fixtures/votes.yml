@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  budget_project: one
+  budget_phase: one
+  vote_weight: 9.99
+
+two:
+  user: two
+  budget_project: two
+  budget_phase: two
+  vote_weight: 9.99

@@ -1,0 +1,176 @@
+<!-- Page Header -->
+<div class="bg-light py-4 mb-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="h2 mb-0">
+          <i class="fas fa-project-diagram me-2"></i>
+          Community Projects
+        </h1>
+        <p class="text-muted mb-0">Browse, filter, and search for projects submitted by the community.</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <%= link_to new_budget_project_path, class: "btn btn-primary" do %>
+          <i class="fas fa-plus me-2"></i>Submit a New Project
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Filter and Search Bar -->
+  <%= form_with url: budget_projects_path, method: :get, id: "filters_form", class: "mb-4" do |f| %>
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <%= select_tag :budget_filter, 
+                          options_from_collection_for_select(Budget.active, :id, :title, params[:budget_filter]),
+                          { prompt: "All Budgets", class: "form-select" } %>
+          </div>
+          <div class="col-md-3">
+            <%= select_tag :category_filter,
+                          options_for_select([], params[:category_filter]),
+                          { prompt: "All Categories", class: "form-select", disabled: params[:budget_filter].blank? } %>
+          </div>
+          <div class="col-md-3">
+            <%= select_tag :status_filter,
+                          options_for_select([
+                            ['Pending Review', 'pending'],
+                            ['Approved', 'approved'],
+                            ['Rejected', 'rejected']
+                          ], params[:status_filter]),
+                          { prompt: 'All Statuses', class: "form-select" } %>
+          </div>
+          <div class="col-md-3">
+            <%= select_tag :sort_by,
+                          options_for_select([
+                            ['Most Recent', 'created_at'],
+                            ['Most Voted', 'votes'],
+                            ['Highest Amount', 'amount'],
+                            ['Title A-Z', 'title'],
+                            ['Highest Sustainability', 'sustainability'],
+                            ['Most Beneficiaries', 'beneficiaries']
+                          ], params[:sort_by]),
+                          { prompt: 'Sort By', class: "form-select" } %>
+          </div>
+        </div>
+        <div class="row g-3 mt-2">
+          <div class="col-md-9">
+            <%= text_field_tag :search, params[:search],
+                              placeholder: "Search projects by title or description...",
+                              class: "form-control" %>
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="fas fa-search me-2"></i>Filter
+            </button>
+          </div>
+        </div>
+        <!-- Impact Filters -->
+        <div class="row g-3 mt-3 pt-3 border-top">
+          <div class="col-md-4">
+            <label for="min_beneficiaries" class="form-label">Min. Beneficiaries: <span id="min_beneficiaries_value"><%= params[:min_beneficiaries] || 0 %></span></label>
+            <%= range_field_tag :min_beneficiaries, params[:min_beneficiaries], in: 0..10000, step: 100, class: 'form-range', id: 'min_beneficiaries' %>
+          </div>
+          <div class="col-md-4">
+            <label for="max_timeline" class="form-label">Max Timeline (Months): <span id="max_timeline_value"><%= params[:max_timeline] || 60 %></span></label>
+            <%= range_field_tag :max_timeline, params[:max_timeline], in: 1..60, class: 'form-range', id: 'max_timeline' %>
+          </div>
+          <div class="col-md-4">
+            <label for="min_sustainability" class="form-label">Min. Sustainability: <span id="min_sustainability_value"><%= params[:min_sustainability] || 0 %></span>/10</label>
+            <%= range_field_tag :min_sustainability, params[:min_sustainability], in: 0..10, step: 0.5, class: 'form-range', id: 'min_sustainability' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Projects Grid -->
+  <div class="row" id="projects-container">
+    <% if @budget_projects.any? %>
+      <% @budget_projects.each do |project| %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <%= render 'budget_projects/project_card', project: project %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="col-12">
+        <div class="card text-center py-5">
+          <div class="card-body">
+            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+            <h5 class="card-title">No Projects Found</h5>
+            <p class="text-muted">No projects match the current filters. Try adjusting your search.</p>
+            <%= link_to "Clear Filters", budget_projects_path, class: "btn btn-outline-secondary" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Pagination -->
+  <div class="d-flex justify-content-center mt-4">
+    <%= paginate @budget_projects %>
+  </div>
+</div>
+
+<script>
+document.addEventListener('turbo:load', function() {
+  const budgetFilter = document.getElementById('budget_filter');
+  const categoryFilter = document.getElementById('category_filter');
+  const filtersForm = document.getElementById('filters_form');
+
+  function updateCategories() {
+    const budgetId = budgetFilter.value;
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    categoryFilter.disabled = true;
+
+    if (budgetId) {
+      fetch(`/budgets/${budgetId}/categories`)
+        .then(response => response.json())
+        .then(data => {
+          const selectedCategory = new URLSearchParams(window.location.search).get('category_filter');
+          data.forEach(category => {
+            const option = new Option(category.name, category.id);
+            if (category.id.toString() === selectedCategory) {
+              option.selected = true;
+            }
+            categoryFilter.add(option);
+          });
+          categoryFilter.disabled = false;
+        });
+    }
+  }
+
+  if (budgetFilter) {
+    budgetFilter.addEventListener('change', () => {
+      // When budget changes, we want to clear the category filter and submit
+      document.getElementById('category_filter').value = '';
+      filtersForm.submit();
+    });
+    // Initial load
+    updateCategories();
+  }
+  
+  // Auto-submit for dropdowns
+  ['category_filter', 'status_filter', 'sort_by'].forEach(id => {
+    const element = document.getElementById(id);
+    if(element) {
+      element.addEventListener('change', () => filtersForm.submit());
+    }
+  });
+
+  // JS for impact filter sliders
+  ['min_beneficiaries', 'max_timeline', 'min_sustainability'].forEach(id => {
+    const slider = document.getElementById(id);
+    const valueDisplay = document.getElementById(`${id}_value`);
+    if(slider && valueDisplay) {
+      slider.addEventListener('input', () => {
+        valueDisplay.textContent = slider.value;
+      });
+      slider.addEventListener('change', () => filtersForm.submit());
+    }
+  });
+});
+</script>

@@ -1,0 +1,74 @@
+<!-- Page Header -->
+<div class="bg-light py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-chart-line me-2"></i>
+      Phase Analytics
+    </h1>
+    <p class="text-muted mb-0">Analyze voting statistics for each phase of a budget.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <!-- Budget Filter -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: admin_dashboard_phase_analytics_path, method: :get, local: true, class: "d-flex gap-2" do %>
+        <%= select_tag :budget_id, 
+                       options_from_collection_for_select(@budgets, :id, :title, params[:budget_id]),
+                       { prompt: "Select a Budget to Analyze", class: "form-select" } %>
+        <button type="submit" class="btn btn-primary">Load Analytics</button>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @selected_budget %>
+    <h4 class="mb-3">Analytics for: <%= @selected_budget.title %></h4>
+    <div class="row g-4">
+      <% @phase_stats.each do |data| %>
+        <% phase = data[:phase] %>
+        <% stats = data[:stats] %>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between">
+              <h6 class="mb-0"><%= phase.name %></h6>
+              <span class="badge phase-indicator phase-<%= phase.status %>">
+                <%= phase.status.humanize %>
+              </span>
+            </div>
+            <div class="card-body">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>Total Votes:</span>
+                  <strong><%= stats[:total_votes] %></strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>Unique Voters:</span>
+                  <strong><%= stats[:unique_voters] %></strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>Projects Voted On:</span>
+                  <strong><%= stats[:projects_voted_on] %></strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>Average Vote Weight:</span>
+                  <strong><%= stats[:average_weight] %></strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>Participation Rate:</span>
+                  <strong><%= number_to_percentage(stats[:participation_rate], precision: 2) %></strong>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-5">
+      <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+      <h5 class="text-muted">Please select a budget to view its phase analytics.</h5>
+    </div>
+  <% end %>
+</div> 

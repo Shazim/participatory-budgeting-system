@@ -1,0 +1,349 @@
+<!-- Dashboard Header -->
+<div class="bg-primary text-white py-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="h2 mb-2">
+          <i class="fas fa-tachometer-alt me-2"></i>
+          Welcome back, <%= current_user.full_name %>!
+        </h1>
+        <p class="mb-0 opacity-75">
+          <% if current_user.admin? %>
+            <i class="fas fa-crown me-1"></i>
+            Administrator Dashboard - Manage budgets and monitor community participation
+          <% else %>
+            Your participation dashboard - Stay engaged with active budgets and voting opportunities
+          <% end %>
+        </p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="d-flex gap-2 justify-content-md-end">
+          <%= link_to budget_projects_path, class: "btn btn-light" do %>
+            <i class="fas fa-plus me-1"></i> New Project
+          <% end %>
+          <% if current_user.admin? %>
+            <%= link_to admin_root_path, class: "btn btn-outline-light" do %>
+              <i class="fas fa-cog me-1"></i> Admin
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="container mt-4">
+  <div class="row g-4 mb-5">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card bg-gradient-primary text-white h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="card-title h2 mb-0"><%= @user_stats[:total_votes] %></h3>
+              <p class="card-text opacity-75 mb-0">Total Votes</p>
+            </div>
+            <i class="fas fa-poll fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card bg-gradient-success text-white h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="card-title h2 mb-0"><%= @user_stats[:total_projects] %></h3>
+              <p class="card-text opacity-75 mb-0">Your Projects</p>
+            </div>
+            <i class="fas fa-project-diagram fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card bg-gradient-warning text-white h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="card-title h2 mb-0"><%= @user_stats[:projects_approved] %></h3>
+              <p class="card-text opacity-75 mb-0">Approved Projects</p>
+            </div>
+            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card bg-gradient-info text-white h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="card-title h2 mb-0"><%= @user_stats[:vote_weight_avg] %></h3>
+              <p class="card-text opacity-75 mb-0">Avg Vote Weight</p>
+            </div>
+            <i class="fas fa-weight fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Active Phases -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-clock me-2 text-primary"></i>
+            Current Phases
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @current_phases.present? %>
+            <% @current_phases.each do |phase| %>
+              <div class="d-flex align-items-center mb-3 p-3 bg-light rounded">
+                <div class="me-3">
+                  <i class="fas fa-<%= phase.phase_icon %> fa-lg text-<%= phase.phase_color %>"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1"><%= phase.name %></h6>
+                  <small class="text-muted"><%= phase.budget.title %></small>
+                  <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-<%= phase.phase_color %>" style="width: <%= phase.progress_percentage %>%"></div>
+                  </div>
+                  <small class="text-muted"><%= phase.days_remaining %> days remaining</small>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-4">
+              <i class="fas fa-calendar-times fa-2x mb-3"></i>
+              <p class="mb-0">No active phases at the moment</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voting Opportunities -->
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-hand-paper me-2 text-success"></i>
+            Voting Opportunities
+          </h5>
+          <%= link_to budget_projects_path, class: "btn btn-sm btn-outline-primary" do %>
+            View All <i class="fas fa-arrow-right ms-1"></i>
+          <% end %>
+        </div>
+        <div class="card-body">
+          <% if @voting_opportunities.present? %>
+            <% @voting_opportunities.each do |project| %>
+              <div class="border rounded p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0">
+                    <%= link_to project.title, project, class: "text-decoration-none" %>
+                  </h6>
+                  <span class="badge bg-<%= project.status_badge_class.gsub('badge-', '') %>">
+                    <%= project.status.humanize %>
+                  </span>
+                </div>
+                <p class="text-muted small mb-2">
+                  <%= truncate(project.description, length: 100) %>
+                </p>
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <small class="text-muted">Category:</small>
+                    <div class="fw-semibold small"><%= project.budget_category.name %></div>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted">Budget:</small>
+                    <div class="fw-semibold small"><%= format_currency(project.amount) %></div>
+                  </div>
+                </div>
+                <% if project.impact_metric %>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      Impact: <%= project.impact_metric.estimated_beneficiaries %> beneficiaries
+                    </small>
+                    <%= link_to project, class: "btn btn-sm btn-primary" do %>
+                      <i class="fas fa-poll me-1"></i> Vote
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-4">
+              <i class="fas fa-vote-yea fa-2x mb-3"></i>
+              <p class="mb-0">No voting opportunities available</p>
+              <small>Check back later or explore existing projects</small>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="row g-4 mt-4">
+    <!-- Your Recent Votes -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2 text-info"></i>
+            Recent Votes
+          </h5>
+          <%= link_to my_votes_votes_path, class: "btn btn-sm btn-outline-info" do %>
+            View All <i class="fas fa-arrow-right ms-1"></i>
+          <% end %>
+        </div>
+        <div class="card-body">
+          <% if @user_votes.present? %>
+            <% @user_votes.each do |vote| %>
+              <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                  <span class="badge bg-<%= vote.weight_color %> voting-weight">
+                    <%= vote.vote_weight > 0 ? '+' : '' %><%= vote.vote_weight %>
+                  </span>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">
+                    <%= link_to vote.budget_project.title, vote.budget_project, class: "text-decoration-none" %>
+                  </h6>
+                  <small class="text-muted">
+                    <%= vote.budget_phase.name %> • <%= time_ago_in_words(vote.created_at) %> ago
+                  </small>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-poll fa-lg mb-2"></i>
+              <p class="mb-0">No votes yet</p>
+              <small>Start voting on projects that matter to you</small>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Your Recent Projects -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-lightbulb me-2 text-warning"></i>
+            Your Projects
+          </h5>
+          <%= link_to new_budget_project_path, class: "btn btn-sm btn-outline-warning" do %>
+            <i class="fas fa-plus me-1"></i> New Project
+          <% end %>
+        </div>
+        <div class="card-body">
+          <% if @user_projects.present? %>
+            <% @user_projects.each do |project| %>
+              <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                  <span class="badge bg-<%= project.status_badge_class.gsub('badge-', '') %>">
+                    <%= project.status.humanize %>
+                  </span>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1"><%= link_to project.title, project, class: "text-decoration-none" %></h6>
+                  <small class="text-muted">
+                    <%= pluralize(project.vote_count, 'vote') %> •
+                    <span class="ms-1"><%= project.budget_category.name %></span>
+                  </small>
+                </div>
+                <div class="ms-3 text-end">
+                  <strong class="d-block"><%= format_currency(project.amount) %></strong>
+                  <small class="text-muted">Budget</small>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-lightbulb fa-lg mb-2"></i>
+              <p class="mb-0">No projects yet</p>
+              <small>Have an idea? Submit your first project proposal</small>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Utilization Overview -->
+  <% if @budget_utilizations.present? %>
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2 text-primary"></i>
+            Budget Utilization Overview
+          </h5>
+        </div>
+        <div class="card-body">
+          <% @budget_utilizations.each do |budget_util| %>
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">
+                  <%= link_to budget_util[:budget].title, budget_util[:budget], class: "text-decoration-none" %>
+                </h6>
+                <small class="text-muted">
+                  <%= format_currency(budget_util[:budget].total_allocated_amount) %> / 
+                  <%= format_currency(budget_util[:budget].total_amount) %>
+                </small>
+              </div>
+              <div class="row g-2">
+                <% budget_util[:utilization].each do |util| %>
+                  <div class="col-md-3">
+                    <div class="p-3 border rounded">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 small"><%= util[:category].name %></h6>
+                        <span class="badge bg-<%= category_utilization_class(util[:utilization_percentage]) %>">
+                          <%= util[:utilization_percentage] %>%
+                        </span>
+                      </div>
+                      <div class="category-limit-bar" 
+                           data-used="<%= util[:used_amount] %>" 
+                           data-limit="<%= util[:limit_amount] %>">
+                        <div class="category-used category-<%= category_utilization_class(util[:utilization_percentage]) %>" 
+                             style="width: <%= [util[:utilization_percentage], 100].min %>%">
+                        </div>
+                      </div>
+                      <small class="text-muted">
+                        <%= format_currency(util[:used_amount]) %> / <%= format_currency(util[:limit_amount]) %>
+                      </small>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% end %>
+</div>
+
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-blue), #3b82f6);
+  }
+  .bg-gradient-success {
+    background: linear-gradient(135deg, var(--primary-green), #10b981);
+  }
+  .bg-gradient-warning {
+    background: linear-gradient(135deg, var(--accent-orange), #f59e0b);
+  }
+  .bg-gradient-info {
+    background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+  }
+</style>

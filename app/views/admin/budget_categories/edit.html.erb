@@ -1,0 +1,39 @@
+<!-- Page Header -->
+<div class="bg-light py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-edit me-2"></i>
+      Edit Spending Limit
+    </h1>
+    <p class="text-muted mb-0">Adjust the spending cap for <strong><%= @budget_category.name %></strong> in the <strong><%= @budget_category.budget.title %></strong> budget.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-body">
+          <%= simple_form_for @budget_category, url: admin_budget_category_path(@budget_category), method: :patch do |f| %>
+            <%= f.error_notification %>
+            
+            <div class="mb-3">
+              <p><strong>Current Limit Amount:</strong> <%= number_to_currency(@budget_category.spending_limit_amount) %></p>
+            </div>
+            
+            <%= f.input :spending_limit_percentage,
+                        label: 'New Spending Limit (%)',
+                        input_html: { min: 1, max: 100, step: 0.01 },
+                        hint: 'Enter a value between 1 and 100.' %>
+
+            <div class="d-flex justify-content-between mt-4">
+              <%= link_to "Cancel", admin_budget_categories_path, class: 'btn btn-secondary' %>
+              <%= f.button :submit, 'Update Limit', class: 'btn btn-primary' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

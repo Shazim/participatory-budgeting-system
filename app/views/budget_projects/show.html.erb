@@ -1,0 +1,195 @@
+<!-- Project Header -->
+<div class="bg-light py-4 border-bottom">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="h2 mb-1"><%= @budget_project.title %></h1>
+        <p class="text-muted mb-2">
+          Proposed by <%= link_to @budget_project.user.name, '#', class: 'text-decoration-none' %>
+          in <%= link_to @budget_project.budget_category.name, '#', class: 'text-decoration-none' %>
+        </p>
+        <div>
+          <span class="badge bg-<%= @budget_project.status_badge_class %> me-2"><%= @budget_project.status.humanize %></span>
+          <span class="badge bg-secondary"><%= format_currency(@budget_project.amount) %></span>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <% if @budget_project.user == current_user || current_user.admin? %>
+          <%= link_to 'Edit Project', edit_budget_project_path(@budget_project), class: 'btn btn-outline-primary' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <div class="row g-4">
+    <!-- Main Project Details -->
+    <div class="col-lg-8">
+      <!-- Project Description -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-file-alt me-2 text-primary"></i>
+            Project Description
+          </h5>
+        </div>
+        <div class="card-body">
+          <p><%= simple_format(@budget_project.description) %></p>
+        </div>
+      </div>
+
+      <!-- Voting Section -->
+      <% if @can_vote %>
+        <div class="card mb-4">
+          <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-vote-yea me-2"></i>
+              Cast Your Vote
+            </h5>
+          </div>
+          <div class="card-body">
+            <%= form_with(url: vote_budget_project_path(@budget_project), method: :post, local: true, data: { controller: "vote-validation" }) do |form| %>
+              <div class="mb-3">
+                <%= form.label :vote_weight, "Your Vote Weight: " %><span id="vote-weight-value" class="fw-bold">0</span>
+                <%= form.range_field :vote_weight, in: -10..10, value: 0, class: "form-range", id: "vote-weight-slider", data: { action: "input->vote-validation#validate" } %>
+                <div class="d-flex justify-content-between">
+                  <small class="text-muted">-10 (Strongly Oppose)</small>
+                  <small class="text-muted">+10 (Strongly Support)</small>
+                </div>
+                <div id="vote-feedback" class="form-text small mt-2"></div>
+              </div>
+              <div class="d-grid">
+                <%= form.submit "Submit Vote", class: "btn btn-success", data: { "vote-validation-target": "submit" } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Voting Results -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-bar me-2 text-info"></i>
+            Voting Results
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4">
+              <h3 class="h4 mb-0"><%= @voting_summary[:total_votes] %></h3>
+              <p class="text-muted mb-0">Total Votes</p>
+            </div>
+            <div class="col-4">
+              <h3 class="h4 mb-0 text-success"><%= @voting_summary[:positive_votes] %></h3>
+              <p class="text-muted mb-0">Upvotes</p>
+            </div>
+            <div class="col-4">
+              <h3 class="h4 mb-0 text-danger"><%= @voting_summary[:negative_votes] %></h3>
+              <p class="text-muted mb-0">Downvotes</p>
+            </div>
+          </div>
+          <hr>
+          <div class="text-center">
+            <p class="mb-1">Total Vote Weight:
+              <strong class="h5 <%= @voting_summary[:total_weight] >= 0 ? 'text-success' : 'text-danger' %>">
+                <%= @voting_summary[:total_weight] %>
+              </strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Impact Metrics -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="fas fa-bullseye-pointer me-2"></i> Impact Metrics</h6>
+        </div>
+        <% if @impact_metric %>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Beneficiaries:</span>
+              <strong><%= @impact_metric.estimated_beneficiaries %></strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Timeline:</span>
+              <strong><%= @impact_metric.timeline_months %> months</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Sustainability:</span>
+              <strong class="text-success"><%= @impact_metric.sustainability_score %> / 10</strong>
+            </li>
+          </ul>
+        <% else %>
+          <div class="card-body text-muted">No impact data available.</div>
+        <% end %>
+      </div>
+
+      <!-- Related Projects -->
+      <div class="card">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="fas fa-project-diagram me-2"></i> Related Projects</h6>
+        </div>
+        <div class="list-group list-group-flush">
+          <% @related_projects.each do |related| %>
+            <%= link_to related.title, related, class: "list-group-item list-group-item-action" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('turbo:load', () => {
+  const slider = document.getElementById('vote-weight-slider');
+  if (slider) {
+    const valueDisplay = document.getElementById('vote-weight-value');
+    slider.addEventListener('input', (event) => {
+      valueDisplay.textContent = event.target.value;
+    });
+  }
+});
+</script>
+
+<template id="vote-validation-controller-template">
+  <script type="module">
+    import { Controller } from '@hotwired/stimulus';
+
+    export default class extends Controller {
+      static targets = ["submit"];
+
+      async validate(event) {
+        const voteWeight = event.target.value;
+        const projectId = this.element.action.match(/projects\/(\d+)/)[1];
+        const feedbackEl = document.getElementById('vote-feedback');
+        
+        const response = await fetch(`/budget_projects/${projectId}/preview_vote`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ vote_weight: voteWeight })
+        });
+
+        const data = await response.json();
+
+        if (data.valid) {
+          feedbackEl.textContent = data.message;
+          feedbackEl.className = 'form-text small mt-2 text-success';
+          this.submitTarget.disabled = false;
+        } else {
+          feedbackEl.textContent = data.message;
+          feedbackEl.className = 'form-text small mt-2 text-danger';
+          this.submitTarget.disabled = true;
+        }
+      }
+    }
+  </script>
+</template>

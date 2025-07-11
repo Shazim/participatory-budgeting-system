@@ -1,0 +1,124 @@
+<!-- Page Header -->
+<div class="bg-primary text-white py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-poll-h me-2"></i>
+      My Voting History
+    </h1>
+    <p class="opacity-75 mb-0">Review your past votes and manage your participation across all budgets.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <div class="row g-4">
+    <!-- Main Content Area -->
+    <div class="col-lg-8">
+      <!-- Voting Statistics -->
+      <div class="card mb-4">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2 text-primary"></i>
+            Your Voting Summary
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3 col-6">
+              <h3 class="h4 mb-0"><%= @user_voting_stats[:total_votes] %></h3>
+              <p class="text-muted mb-0">Total Votes</p>
+            </div>
+            <div class="col-md-3 col-6">
+              <h3 class="h4 mb-0"><%= @user_voting_stats[:positive_votes] %></h3>
+              <p class="text-muted mb-0">Upvotes</p>
+            </div>
+            <div class="col-md-3 col-6 mt-3 mt-md-0">
+              <h3 class="h4 mb-0"><%= @user_voting_stats[:negative_votes] %></h3>
+              <p class="text-muted mb-0">Downvotes</p>
+            </div>
+            <div class="col-md-3 col-6 mt-3 mt-md-0">
+              <h3 class="h4 mb-0"><%= @user_voting_stats[:avg_vote_weight] %></h3>
+              <p class="text-muted mb-0">Avg. Weight</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Votes Grouped by Budget -->
+      <% @votes_by_budget.each do |budget, votes| %>
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="fas fa-landmark me-2"></i>
+              Budget: <%= link_to budget.title, budget_path(budget), class: "text-decoration-none" %>
+            </h6>
+          </div>
+          <ul class="list-group list-group-flush">
+            <% votes.each do |vote| %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1 me-3">
+                  <h6 class="mb-1">
+                    <%= link_to vote.budget_project.title, budget_project_path(vote.budget_project), class: "text-decoration-none" %>
+                  </h6>
+                  <small class="text-muted">
+                    Voted in phase: <strong><%= vote.budget_phase.name %></strong>
+                    on <%= vote.created_at.strftime('%B %d, %Y') %>
+                  </small>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-<%= vote.weight_color %> fs-6">
+                    <%= vote.vote_weight > 0 ? '+' : '' %><%= vote.vote_weight %>
+                  </span>
+                  <% if vote.can_be_modified? %>
+                    <%= link_to 'Modify', edit_vote_path(vote), class: 'btn btn-sm btn-outline-secondary ms-2' %>
+                  <% end %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-center">
+        <%= paginate @votes %>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2 text-info"></i>
+            Recent Activity
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @recent_votes.any? %>
+            <% @recent_votes.each do |vote| %>
+              <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                  <span class="badge bg-<%= vote.weight_color %>" style="width: 40px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">
+                    <%= vote.vote_weight > 0 ? '+' : '' %><%= vote.vote_weight %>
+                  </span>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 small">
+                    <%= link_to vote.budget_project.title, vote.budget_project, class: "text-decoration-none" %>
+                  </h6>
+                  <small class="text-muted"><%= time_ago_in_words(vote.created_at) %> ago</small>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-poll-h fa-2x mb-2"></i>
+              <p>No votes yet.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

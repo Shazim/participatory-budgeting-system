@@ -1,0 +1,362 @@
+<div class="container mt-4">
+  <!-- Budget Header -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <h1 class="h2 mb-0"><%= @budget.title %></h1>
+        <span class="badge bg-<%= @budget.status == 'active' ? 'success' : @budget.status == 'draft' ? 'warning' : 'secondary' %> fs-6">
+          <%= @budget.status.humanize %>
+        </span>
+      </div>
+      <p class="text-muted mb-3"><%= @budget.description %></p>
+      
+      <!-- Budget Timeline -->
+      <div class="d-flex align-items-center gap-4 text-sm">
+        <div>
+          <i class="fas fa-calendar-start me-2 text-muted"></i>
+          <strong>Start:</strong> <%= @budget.start_date.strftime("%B %d, %Y") %>
+        </div>
+        <div>
+          <i class="fas fa-calendar-end me-2 text-muted"></i>
+          <strong>End:</strong> <%= @budget.end_date.strftime("%B %d, %Y") %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 text-end">
+      <% if current_user&.admin? %>
+        <div class="d-flex gap-2 justify-content-end">
+          <%= link_to edit_budget_path(@budget), class: "btn btn-outline-secondary" do %>
+            <i class="fas fa-edit me-1"></i> Edit
+          <% end %>
+          <% if @budget.active? %>
+            <%= link_to close_voting_budget_path(@budget), 
+                        class: "btn btn-warning", 
+                        data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to close voting? This action cannot be undone." } do %>
+              <i class="fas fa-gavel me-1"></i> Close Voting
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <i class="fas fa-project-diagram fa-2x text-primary mb-2"></i>
+          <h4><%= @total_projects %></h4>
+          <p class="text-muted mb-0">Total Projects</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+          <h4><%= @approved_projects %></h4>
+          <p class="text-muted mb-0">Approved</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <i class="fas fa-poll fa-2x text-info mb-2"></i>
+          <h4><%= @total_votes %></h4>
+          <p class="text-muted mb-0">Total Votes</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <i class="fas fa-users fa-2x text-warning mb-2"></i>
+          <h4><%= @unique_voters %></h4>
+          <p class="text-muted mb-0">Participants</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Phase Information -->
+  <% if @current_phase %>
+    <div class="alert alert-info mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <h6 class="alert-heading mb-2">
+            <i class="fas fa-info-circle me-2"></i>
+            Current Phase: <%= @current_phase.name %>
+          </h6>
+          <p class="mb-0"><%= @current_phase.description %></p>
+        </div>
+        <div class="text-end">
+          <div class="small text-muted">Progress</div>
+          <div class="fw-bold"><%= @current_phase.progress_percentage.round(1) %>%</div>
+          <div class="small text-muted">
+            <%= pluralize(@current_phase.days_remaining, 'day') %> remaining
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#categories" type="button">
+        <i class="fas fa-tags me-2"></i>Categories
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#projects" type="button">
+        <i class="fas fa-project-diagram me-2"></i>Projects
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#phases" type="button">
+        <i class="fas fa-clock me-2"></i>Phases
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics" type="button">
+        <i class="fas fa-chart-bar me-2"></i>Analytics
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Categories Tab -->
+    <div class="tab-pane fade show active" id="categories">
+      <div class="row g-4">
+        <% @budget_categories.each do |category| %>
+          <div class="col-lg-6">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><%= category.name %></h6>
+                <span class="badge bg-primary"><%= category.spending_limit_percentage %>% limit</span>
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-3"><%= category.description %></p>
+                
+                <% utilization = @category_utilization.find { |u| u[:category] == category } %>
+                <% if utilization %>
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-2">
+                      <span>Budget Utilization</span>
+                      <span><%= utilization[:utilization_percentage].round(1) %>%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                      <div class="progress-bar bg-<%= category_utilization_class(utilization[:utilization_percentage]) %>" 
+                           style="width: <%= [utilization[:utilization_percentage], 100].min %>%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mt-1">
+                      <span>Used: <%= format_currency(utilization[:used_amount]) %></span>
+                      <span>Limit: <%= format_currency(utilization[:limit_amount]) %></span>
+                    </div>
+                  </div>
+                <% end %>
+                
+                <div class="text-center">
+                  <div class="small text-muted">Projects in this category</div>
+                  <div class="h4 mb-0"><%= category.budget_projects.count %></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Projects Tab -->
+    <div class="tab-pane fade" id="projects">
+      <% if @budget.budget_projects.any? %>
+        <div class="row g-4">
+          <% @budget.budget_projects.includes(:user, :budget_category, :votes).each do |project| %>
+            <div class="col-lg-4">
+              <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <small class="text-muted"><%= project.budget_category.name %></small>
+                  <span class="badge bg-<%= project.status == 'approved' ? 'success' : project.status == 'pending' ? 'warning' : 'secondary' %>">
+                    <%= project.status.humanize %>
+                  </span>
+                </div>
+                <div class="card-body">
+                  <h6 class="card-title"><%= link_to project.title, project, class: "text-decoration-none" %></h6>
+                  <p class="card-text text-muted"><%= truncate(project.description, length: 100) %></p>
+                  
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-muted">Amount</small>
+                      <div class="fw-bold"><%= format_currency(project.amount) %></div>
+                    </div>
+                    <div class="text-end">
+                      <small class="text-muted">Votes</small>
+                      <div class="fw-bold"><%= project.votes.count %></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                  <%= link_to project, class: "btn btn-outline-primary btn-sm" do %>
+                    <i class="fas fa-eye me-1"></i> View
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-5">
+          <i class="fas fa-project-diagram fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">No Projects Yet</h5>
+          <p class="text-muted">Projects will appear here once they are submitted.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Phases Tab -->
+    <div class="tab-pane fade" id="phases">
+      <div class="row g-4">
+        <% @budget_phases.each_with_index do |phase, index| %>
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="phase-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <%= index + 1 %>
+                      </div>
+                      <div>
+                        <h6 class="mb-1"><%= phase.name %></h6>
+                        <p class="text-muted mb-0"><%= phase.description %></p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <span class="badge phase-indicator phase-<%= phase.status %>">
+                        <%= phase.status.humanize %>
+                      </span>
+                      <div class="small text-muted mt-1">
+                        <%= phase.start_date.strftime("%b %d") %> - <%= phase.end_date.strftime("%b %d") %>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="progress" style="height: 8px;">
+                      <div class="progress-bar bg-<%= phase_status_class(phase) %>" 
+                           style="width: <%= phase.progress_percentage %>%"></div>
+                    </div>
+                    <div class="small text-muted text-center mt-1">
+                      <%= phase.progress_percentage.round(1) %>% complete
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="tab-pane fade" id="analytics">
+      <div class="row g-4">
+        <!-- Top Voted Projects -->
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0">
+                <i class="fas fa-trophy me-2"></i>Top Voted Projects
+              </h6>
+            </div>
+            <div class="card-body">
+              <% if @top_projects.any? %>
+                <% @top_projects.each_with_index do |project, index| %>
+                  <div class="d-flex align-items-center mb-3 <%= 'border-bottom pb-3' unless index == @top_projects.length - 1 %>">
+                    <div class="me-3">
+                      <span class="badge bg-primary rounded-pill"><%= index + 1 %></span>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold"><%= project.title %></div>
+                      <small class="text-muted"><%= project.budget_category.name %></small>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-semibold"><%= project.votes.count %></div>
+                      <small class="text-muted">votes</small>
+                    </div>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted text-center">No votes yet</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phase Statistics -->
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0">
+                <i class="fas fa-chart-pie me-2"></i>Phase Statistics
+              </h6>
+            </div>
+            <div class="card-body">
+              <% @phase_stats.each do |phase_stat| %>
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong><%= phase_stat[:phase].name %></strong>
+                    <span class="badge phase-indicator phase-<%= phase_stat[:phase].status %>">
+                      <%= phase_stat[:phase].status.humanize %>
+                    </span>
+                  </div>
+                  <div class="row g-2 small">
+                    <div class="col-6">
+                      <div class="text-muted">Votes</div>
+                      <div class="fw-semibold"><%= phase_stat[:phase].votes.count %></div>
+                    </div>
+                    <div class="col-6">
+                      <div class="text-muted">Participants</div>
+                      <div class="fw-semibold"><%= phase_stat[:phase].participant_count %></div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Actions -->
+  <% if current_user&.admin? %>
+    <div class="mt-4 pt-4 border-top">
+      <h6 class="text-muted mb-3">Admin Actions</h6>
+      <div class="d-flex gap-2">
+        <%= link_to edit_budget_path(@budget), class: "btn btn-outline-primary" do %>
+          <i class="fas fa-edit me-2"></i>Edit Budget
+        <% end %>
+        
+        <% if @budget.active? %>
+          <%= link_to close_voting_budget_path(@budget),
+                      class: "btn btn-warning",
+                      data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to close voting for this budget?" } do %>
+            <i class="fas fa-stop me-2"></i>Close Voting
+          <% end %>
+        <% elsif @budget.draft? %>
+          <%= link_to activate_budget_path(@budget), method: :patch, 
+                      class: "btn btn-success",
+                      data: { confirm: "Are you sure you want to activate this budget?" } do %>
+            <i class="fas fa-play me-2"></i>Activate Budget
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

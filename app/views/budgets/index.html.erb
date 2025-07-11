@@ -1,0 +1,167 @@
+<style>
+  .nav-pills .nav-link.active {
+    color: white !important;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h2 mb-2">Budgets</h1>
+      <p class="text-muted">Explore and participate in budget allocation decisions</p>
+    </div>
+    <% if current_user&.admin? %>
+      <%= link_to new_budget_path, class: "btn btn-primary" do %>
+        <i class="fas fa-plus me-2"></i>Create New Budget
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Budget Statistics -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-money-bill-wave fa-2x text-primary mb-2"></i>
+          <h5 class="card-title"><%= @active_budgets.count %></h5>
+          <p class="card-text text-muted">Active Budgets</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-edit fa-2x text-warning mb-2"></i>
+          <h5 class="card-title"><%= @draft_budgets.count %></h5>
+          <p class="card-text text-muted">Draft Budgets</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+          <h5 class="card-title"><%= @completed_budgets.count %></h5>
+          <p class="card-text text-muted">Completed</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-calculator fa-2x text-info mb-2"></i>
+          <h5 class="card-title"><%= format_currency(@budgets.sum(:total_amount)) %></h5>
+          <p class="card-text text-muted">Total Value</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <ul class="nav nav-pills mb-4" id="budgetTabs" role="tablist">
+   <li class="nav-item" role="presentation">
+      <button class="nav-link" id="all-tab" data-bs-toggle="pill" data-bs-target="#all" type="button">
+        All <span class="badge bg-light text-dark ms-1"><%= @budgets.count %></span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active " id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button">
+        Active <span class="badge bg-light text-dark ms-1"><%= @active_budgets.count %></span>
+      </button>
+    </li>
+    <% if current_user&.admin? %>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="draft-tab" data-bs-toggle="pill" data-bs-target="#draft" type="button">
+          Draft <span class="badge bg-light text-dark ms-1"><%= @draft_budgets.count %></span>
+        </button>
+      </li>
+    <% end %>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed" type="button">
+        Completed <span class="badge bg-light text-dark ms-1"><%= @completed_budgets.count %></span>
+      </button>
+    </li>
+   
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="budgetTabsContent">
+    <!-- Active Budgets -->
+    <div class="tab-pane fade show active" id="active" role="tabpanel">
+      <% if @active_budgets.any? %>
+        <div class="row g-4">
+          <% @active_budgets.each do |budget| %>
+            <%= render 'budget_card', budget: budget, card_type: 'active' %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-5">
+          <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">No Active Budgets</h5>
+          <p class="text-muted">There are currently no active budgets available for participation.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Draft Budgets -->
+    <% if current_user&.admin? %>
+      <div class="tab-pane fade" id="draft" role="tabpanel">
+        <% if @draft_budgets.any? %>
+          <div class="row g-4">
+            <% @draft_budgets.each do |budget| %>
+              <%= render 'budget_card', budget: budget, card_type: 'draft' %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-5">
+            <i class="fas fa-edit fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No Draft Budgets</h5>
+            <p class="text-muted">Create a new budget to get started.</p>
+            <%= link_to new_budget_path, class: "btn btn-primary" do %>
+              <i class="fas fa-plus me-2"></i>Create New Budget
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Completed Budgets -->
+    <div class="tab-pane fade" id="completed" role="tabpanel">
+      <% if @completed_budgets.any? %>
+        <div class="row g-4">
+          <% @completed_budgets.each do |budget| %>
+            <%= render 'budget_card', budget: budget, card_type: 'completed' %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-5">
+          <i class="fas fa-archive fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">No Completed Budgets</h5>
+          <p class="text-muted">Completed budgets will appear here once voting is finished.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- All Budgets -->
+    <div class="tab-pane fade" id="all" role="tabpanel">
+      <% if @budgets.any? %>
+        <div class="row g-4">
+          <% @budgets.each do |budget| %>
+            <%= render 'budget_card', budget: budget, card_type: 'all' %>
+          <% end %>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4">
+          <%#= paginate @budgets %>
+        </div>
+      <% else %>
+        <div class="text-center py-5">
+          <i class="fas fa-search fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">No Budgets Found</h5>
+          <p class="text-muted">Get started by creating your first budget.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

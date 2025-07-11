@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  estimated_beneficiaries: 1
+  timeline_months: 1
+  sustainability_score: 9.99
+  environmental_impact: MyString
+  social_impact: MyString
+  economic_impact: MyString
+  budget_project: one
+
+two:
+  estimated_beneficiaries: 1
+  timeline_months: 1
+  sustainability_score: 9.99
+  environmental_impact: MyString
+  social_impact: MyString
+  economic_impact: MyString
+  budget_project: two

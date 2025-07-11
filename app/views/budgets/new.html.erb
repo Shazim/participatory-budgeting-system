@@ -1,0 +1,175 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-plus me-2"></i>
+            Create New Budget
+          </h4>
+        </div>
+        
+        <div class="card-body p-4">
+          <%= simple_form_for @budget, wrapper: :vertical_form do |f| %>
+            <%= f.error_notification %>
+            
+            <!-- Basic Information -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Basic Information
+              </h6>
+              
+              <%= f.input :title,
+                          required: true,
+                          placeholder: "e.g., Community Budget 2024",
+                          input_html: { class: "form-control" },
+                          wrapper_html: { class: "mb-3" } %>
+              
+              <%= f.input :description,
+                          as: :text,
+                          required: true,
+                          placeholder: "Describe the purpose and scope of this budget...",
+                          input_html: { class: "form-control", rows: 4 },
+                          wrapper_html: { class: "mb-3" } %>
+              
+              <%= f.input :total_amount,
+                          required: true,
+                          placeholder: "e.g., 1000000",
+                          hint: "Total amount available for allocation",
+                          input_html: { class: "form-control", step: 0.01 },
+                          wrapper_html: { class: "mb-3" } %>
+            </div>
+            
+            <!-- Timeline -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-calendar me-2"></i>
+                Timeline
+              </h6>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <%= f.input :start_date,
+                              as: :date,
+                              required: true,
+                              input_html: { class: "form-control" },
+                              wrapper_html: { class: "mb-3" } %>
+                </div>
+                <div class="col-md-6">
+                  <%= f.input :end_date,
+                              as: :date,
+                              required: true,
+                              input_html: { class: "form-control" },
+                              wrapper_html: { class: "mb-3" } %>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Categories -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted mb-0">
+                  <i class="fas fa-tags me-2"></i>
+                  Budget Categories
+                </h6>
+                <div class="form-check">
+                  <%= check_box_tag :create_default_categories, 1, true, 
+                                    class: "form-check-input",
+                                    id: "create_default_categories" %>
+                  <%= label_tag :create_default_categories, "Create default categories", 
+                                class: "form-check-label" %>
+                </div>
+              </div>
+              
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Default Categories:</strong> Infrastructure (40%), Social Programs (30%), Environment (20%), Technology (10%)
+              </div>
+              
+              <div id="custom_categories" class="d-none">
+                <%= f.simple_fields_for :budget_categories do |category_form| %>
+                  <div class="card mb-3">
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-4">
+                          <%= category_form.input :name,
+                                                  label: "Category Name",
+                                                  input_html: { class: "form-control" },
+                                                  wrapper_html: { class: "mb-3" } %>
+                        </div>
+                        <div class="col-md-5">
+                          <%= category_form.input :description,
+                                                  label: "Description",
+                                                  input_html: { class: "form-control" },
+                                                  wrapper_html: { class: "mb-3" } %>
+                        </div>
+                        <div class="col-md-3">
+                          <%= category_form.input :spending_limit_percentage,
+                                                  label: "Limit %",
+                                                  input_html: { class: "form-control", min: 0, max: 100 },
+                                                  wrapper_html: { class: "mb-3" } %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+                
+                <button type="button" class="btn btn-outline-primary btn-sm" id="add_category">
+                  <i class="fas fa-plus me-2"></i>Add Category
+                </button>
+              </div>
+            </div>
+            
+            <!-- Status -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-cog me-2"></i>
+                Initial Status
+              </h6>
+              
+              <%= f.input :status,
+                          collection: [['Draft', 'draft'], ['Active', 'active']],
+                          selected: 'draft',
+                          include_blank: false,
+                          input_html: { class: "form-select" },
+                          wrapper_html: { class: "mb-3" } %>
+              
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Note:</strong> You can start as a draft and activate later, or make it active immediately.
+              </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-end">
+              <%= link_to budgets_path, class: "btn btn-outline-secondary" do %>
+                <i class="fas fa-times me-2"></i>Cancel
+              <% end %>
+              
+              <%= f.button :submit, "Create Budget", 
+                          class: "btn btn-primary" do %>
+                <i class="fas fa-save me-2"></i>Create Budget
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const defaultCheckbox = document.getElementById('create_default_categories');
+    const customCategories = document.getElementById('custom_categories');
+    
+    defaultCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        customCategories.classList.add('d-none');
+      } else {
+        customCategories.classList.remove('d-none');
+      }
+    });
+  });
+</script>

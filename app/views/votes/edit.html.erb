@@ -1,0 +1,51 @@
+<!-- Page Header -->
+<div class="bg-primary text-white py-4">
+  <div class="container">
+    <h1 class="h2 mb-0">
+      <i class="fas fa-edit me-2"></i>
+      Modify Your Vote
+    </h1>
+    <p class="opacity-75 mb-0">Adjust your vote for the project: <strong><%= @vote.budget_project.title %></strong></p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body p-4">
+          <%= form_with(model: @vote, url: vote_path(@vote), method: :patch, local: true) do |form| %>
+            <div class="mb-3">
+              <%= form.label :vote_weight, 'Your vote weight (-10 to +10)', class: 'form-label' %>
+              <%= form.range_field :vote_weight, in: -10..10, class: 'form-range', id: 'vote-weight-slider' %>
+              <div class="text-center mt-2">
+                <span class="badge bg-primary fs-5" id="vote-weight-display"><%= @vote.vote_weight %></span>
+              </div>
+            </div>
+
+            <div class="d-grid">
+              <%= form.submit 'Update Vote', class: 'btn btn-primary' %>
+            </div>
+            <div class="text-center mt-2">
+              <%= link_to 'Cancel', my_votes_votes_path, class: 'text-muted' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    const slider = document.getElementById('vote-weight-slider');
+    const display = document.getElementById('vote-weight-display');
+
+    if (slider && display) {
+      slider.addEventListener('input', function() {
+        display.textContent = this.value;
+      });
+    }
+  });
+</script> 

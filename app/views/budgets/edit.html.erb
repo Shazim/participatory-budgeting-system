@@ -1,0 +1,242 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-edit me-2"></i>
+            Edit Budget: <%= @budget.title %>
+          </h4>
+        </div>
+        
+        <div class="card-body p-4">
+          <%= simple_form_for @budget, wrapper: :vertical_form do |f| %>
+            <%= f.error_notification %>
+            
+            <!-- Basic Information -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Basic Information
+              </h6>
+              
+              <%= f.input :title,
+                          required: true,
+                          input_html: { class: "form-control" },
+                          wrapper_html: { class: "mb-3" } %>
+              
+              <%= f.input :description,
+                          as: :text,
+                          required: true,
+                          input_html: { class: "form-control", rows: 4 },
+                          wrapper_html: { class: "mb-3" } %>
+              
+              <%= f.input :total_amount,
+                          required: true,
+                          hint: "Total amount available for allocation",
+                          input_html: { class: "form-control", step: 0.01 },
+                          wrapper_html: { class: "mb-3" } %>
+            </div>
+            
+            <!-- Timeline -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-calendar me-2"></i>
+                Timeline
+              </h6>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <%= f.input :start_date,
+                              as: :date,
+                              required: true,
+                              input_html: { class: "form-control" },
+                              wrapper_html: { class: "mb-3" } %>
+                </div>
+                <div class="col-md-6">
+                  <%= f.input :end_date,
+                              as: :date,
+                              required: true,
+                              input_html: { class: "form-control" },
+                              wrapper_html: { class: "mb-3" } %>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Categories -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-tags me-2"></i>
+                Budget Categories
+              </h6>
+              
+              <div id="budget_categories">
+                <%= f.simple_fields_for :budget_categories do |category_form| %>
+                  <div class="card mb-3 category-item">
+                    <div class="card-body">
+                      <div class="row align-items-center">
+                        <div class="col-md-3">
+                          <%= category_form.input :name,
+                                                  label: false,
+                                                  placeholder: "Category Name",
+                                                  input_html: { class: "form-control" },
+                                                  wrapper_html: { class: "mb-2" } %>
+                        </div>
+                        <div class="col-md-5">
+                          <%= category_form.input :description,
+                                                  label: false,
+                                                  placeholder: "Description",
+                                                  input_html: { class: "form-control" },
+                                                  wrapper_html: { class: "mb-2" } %>
+                        </div>
+                        <div class="col-md-2">
+                          <%= category_form.input :spending_limit_percentage,
+                                                  label: false,
+                                                  placeholder: "Limit %",
+                                                  input_html: { class: "form-control", min: 0, max: 100 },
+                                                  wrapper_html: { class: "mb-2" } %>
+                        </div>
+                        <div class="col-md-2">
+                          <% if category_form.object.persisted? %>
+                            <%= category_form.input :_destroy,
+                                                    as: :boolean,
+                                                    wrapper_html: { class: "mb-2" },
+                                                    label: "Remove" %>
+                          <% else %>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-category">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          <% end %>
+                        </div>
+                      </div>
+                      
+                      <!-- Category Statistics -->
+                      <% if category_form.object.persisted? %>
+                        <div class="row mt-3">
+                          <div class="col-md-4">
+                            <small class="text-muted">Projects</small>
+                            <div class="fw-semibold"><%= category_form.object.budget_projects.count %></div>
+                          </div>
+                          <div class="col-md-4">
+                            <small class="text-muted">Allocated</small>
+                            <div class="fw-semibold">
+                              <%= format_currency(category_form.object.budget_projects.approved.sum(:amount)) %>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <small class="text-muted">Utilization</small>
+                            <div class="fw-semibold">
+                              <% total_limit = @budget.total_amount * (category_form.object.spending_limit_percentage || 0) / 100 %>
+                              <% used_amount = category_form.object.budget_projects.approved.sum(:amount) %>
+                              <% utilization = total_limit > 0 ? (used_amount / total_limit * 100).round(1) : 0 %>
+                              <%= utilization %>%
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+              
+              <button type="button" class="btn btn-outline-primary btn-sm" id="add_category">
+                <i class="fas fa-plus me-2"></i>Add Category
+              </button>
+            </div>
+            
+            <!-- Status -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-cog me-2"></i>
+                Status
+              </h6>
+              
+              <%= f.input :status,
+                          collection: Budget.statuses.map { |key, _| [key.humanize, key] },
+                          include_blank: false,
+                          input_html: { class: "form-select" },
+                          wrapper_html: { class: "mb-3" } %>
+              
+              <% if @budget.active? %>
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  <strong>Warning:</strong> This budget is currently active. Changes may affect ongoing voting.
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Current Statistics -->
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-chart-bar me-2"></i>
+                Current Statistics
+              </h6>
+              
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <div class="card text-center">
+                    <div class="card-body py-3">
+                      <i class="fas fa-project-diagram text-primary mb-2"></i>
+                      <div class="h5 mb-1"><%= @budget.budget_projects.count %></div>
+                      <small class="text-muted">Projects</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card text-center">
+                    <div class="card-body py-3">
+                      <i class="fas fa-poll text-info mb-2"></i>
+                      <div class="h5 mb-1"><%= @budget.votes.count %></div>
+                      <small class="text-muted">Votes</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card text-center">
+                    <div class="card-body py-3">
+                      <i class="fas fa-dollar-sign text-success mb-2"></i>
+                      <div class="h5 mb-1"><%= format_currency(@budget.total_allocated_amount) %></div>
+                      <small class="text-muted">Allocated</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card text-center">
+                    <div class="card-body py-3">
+                      <i class="fas fa-users text-warning mb-2"></i>
+                      <div class="h5 mb-1"><%= @budget.votes.distinct.count(:user_id) %></div>
+                      <small class="text-muted">Participants</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-end">
+              <%= link_to @budget, class: "btn btn-outline-secondary" do %>
+                <i class="fas fa-times me-2"></i>Cancel
+              <% end %>
+              
+              <%= f.button :submit, "Update Budget", 
+                          class: "btn btn-primary" do %>
+                <i class="fas fa-save me-2"></i>Update Budget
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle remove category buttons
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.remove-category')) {
+        e.target.closest('.category-item').remove();
+      }
+    });
+  });
+</script>

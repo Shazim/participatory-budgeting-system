@@ -1,0 +1,86 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow">
+        <div class="card-body p-5">
+          <div class="text-center mb-4">
+            <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+            <h2 class="h3 mb-2">Create Account</h2>
+            <p class="text-muted">Join our participatory budgeting platform</p>
+          </div>
+
+          <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), 
+                              html: { class: "needs-validation", novalidate: true },
+                              wrapper: :vertical_form,
+                              wrapper_mappings: {
+                                check_boxes: :vertical_radio_and_checkboxes,
+                                radio_buttons: :vertical_radio_and_checkboxes,
+                                file: :vertical_file_input,
+                                boolean: :vertical_boolean
+                              }) do |f| %>
+            
+            <%= f.error_notification %>
+
+            <div class="form-inputs">
+              <%= f.input :name,
+                          required: true,
+                          autofocus: true,
+                          placeholder: "Enter your full name",
+                          input_html: { 
+                            class: "form-control form-control-lg",
+                            autocomplete: "name"
+                          },
+                          wrapper_html: { class: "mb-3" } %>
+
+              <%= f.input :email,
+                          required: true,
+                          placeholder: "Enter your email address",
+                          input_html: { 
+                            class: "form-control form-control-lg",
+                            autocomplete: "email"
+                          },
+                          wrapper_html: { class: "mb-3" } %>
+
+              <%= f.input :password,
+                          required: true,
+                          placeholder: "Create a password",
+                          hint: ("#{@minimum_password_length} characters minimum" if @minimum_password_length),
+                          input_html: { 
+                            class: "form-control form-control-lg",
+                            autocomplete: "new-password"
+                          },
+                          wrapper_html: { class: "mb-3" } %>
+
+              <%= f.input :password_confirmation,
+                          required: true,
+                          placeholder: "Confirm your password",
+                          input_html: { 
+                            class: "form-control form-control-lg",
+                            autocomplete: "new-password"
+                          },
+                          wrapper_html: { class: "mb-4" } %>
+            </div>
+
+            <div class="form-actions d-grid">
+              <%= f.button :submit, "Create Account", 
+                          class: "btn btn-primary btn-lg" %>
+            </div>
+          <% end %>
+
+          <div class="text-center mt-4">
+            <p class="text-muted mb-0">
+              Already have an account? 
+              <%= link_to "Sign in here", new_user_session_path, class: "text-decoration-none" %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <small class="text-muted">
+          By creating an account, you agree to participate in democratic budget allocation
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
