@@ -1,5 +1,5 @@
 class Admin::BudgetCategoriesController < ApplicationController
-  before_action :set_budget_category, only: [:edit, :update]
+  before_action :set_budget_category, only: [ :edit, :update ]
 
   def index
     @budget_categories = BudgetCategory.includes(:budget).all
@@ -10,7 +10,7 @@ class Admin::BudgetCategoriesController < ApplicationController
 
   def update
     if @budget_category.update(budget_category_params)
-      redirect_to admin_budget_categories_path, notice: 'Category limit updated successfully.'
+      redirect_to admin_budget_categories_path, notice: "Category limit updated successfully."
     else
       render :edit
     end

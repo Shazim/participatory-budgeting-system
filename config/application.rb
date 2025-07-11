@@ -23,5 +23,11 @@ module Assignment1
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    # For example, in the United States, it's common to use it for holiday calculations.
+    # config.beginning_of_week = :sunday
+
+    # Configure the default encoding used in templates for Ruby 1.9.
+    config.encoding = "utf-8"
+    config.active_support.to_time_preserves_timezone = :zone
   end
 end

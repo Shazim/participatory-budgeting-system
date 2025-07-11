@@ -1,4 +1,4 @@
-require 'csv'
+require "csv"
 
 class Budget < ApplicationRecord
   belongs_to :user
@@ -21,40 +21,40 @@ class Budget < ApplicationRecord
 
   # Enums
   enum status: {
-    draft: 'draft',
-    active: 'active',
-    voting_closed: 'voting_closed',
-    completed: 'completed',
-    archived: 'archived'
+    draft: "draft",
+    active: "active",
+    voting_closed: "voting_closed",
+    completed: "completed",
+    archived: "archived"
   }
 
   # Scopes
-  scope :active, -> { where(status: 'active') }
-  scope :current, -> { where('start_date <= ? AND end_date >= ?', Date.current, Date.current) }
-  scope :upcoming, -> { where('start_date > ?', Date.current) }
-  scope :past, -> { where('end_date < ?', Date.current) }
+  scope :active, -> { where(status: "active") }
+  scope :current, -> { where("start_date <= ? AND end_date >= ?", Date.current, Date.current) }
+  scope :upcoming, -> { where("start_date > ?", Date.current) }
+  scope :past, -> { where("end_date < ?", Date.current) }
 
   # Instance methods
   def current_phase
-    budget_phases.where('start_date <= ? AND end_date >= ?', Date.current, Date.current).first
+    budget_phases.where("start_date <= ? AND end_date >= ?", Date.current, Date.current).first
   end
 
   def next_phase
-    budget_phases.where('start_date > ?', Date.current).order(:start_date).first
+    budget_phases.where("start_date > ?", Date.current).order(:start_date).first
   end
 
   def progress_percentage
     return 0 unless start_date && end_date
-    
+
     total_days = (end_date - start_date).to_i
     return 100 if total_days <= 0
-    
-    elapsed_days = [(Date.current - start_date).to_i, 0].max
-    [(elapsed_days.to_f / total_days * 100).round(2), 100].min
+
+    elapsed_days = [ (Date.current - start_date).to_i, 0 ].max
+    [ (elapsed_days.to_f / total_days * 100).round(2), 100 ].min
   end
 
   def total_allocated_amount
-    budget_projects.where(status: 'approved').sum(:amount) || 0
+    budget_projects.where(status: "approved").sum(:amount) || 0
   end
 
   def remaining_amount
@@ -67,9 +67,9 @@ class Budget < ApplicationRecord
 
   def category_utilization
     budget_categories.includes(:budget_projects).map do |category|
-      used_amount = category.budget_projects.where(status: 'approved').sum(:amount) || 0
+      used_amount = category.budget_projects.where(status: "approved").sum(:amount) || 0
       limit_amount = (total_amount * (category.spending_limit_percentage || 0) / 100)
-      
+
       {
         category: category,
         used_amount: used_amount,
@@ -81,10 +81,10 @@ class Budget < ApplicationRecord
 
   def can_accept_project?(project_amount, category)
     return false unless category.budget == self
-    
+
     category_limit = total_amount * (category.spending_limit_percentage || 0) / 100
-    current_category_total = category.budget_projects.where(status: 'approved').sum(:amount) || 0
-    
+    current_category_total = category.budget_projects.where(status: "approved").sum(:amount) || 0
+
     (current_category_total + project_amount) <= category_limit
   end
 
@@ -94,16 +94,16 @@ class Budget < ApplicationRecord
 
   def auto_transition_to_next_phase!
     return false unless phase_transition_eligible?
-    
-    current_phase.update!(status: 'completed')
-    next_phase&.update!(status: 'active')
+
+    current_phase.update!(status: "completed")
+    next_phase&.update!(status: "active")
   end
 
   private
 
   def end_date_after_start_date
     return unless start_date && end_date
-    
+
     if end_date <= start_date
       errors.add(:end_date, "must be after start date")
     end
@@ -111,7 +111,7 @@ class Budget < ApplicationRecord
 
   def total_amount_covers_category_limits
     return unless total_amount && budget_categories.exists?
-    
+
     total_percentage = budget_categories.sum(:spending_limit_percentage) || 0
     if total_percentage > 100
       errors.add(:base, "Total spending limit percentages cannot exceed 100%")
@@ -119,11 +119,11 @@ class Budget < ApplicationRecord
   end
 
   def self.to_csv
-    headers = ['Budget Title', 'Category Name', 'Spending Limit (%)', 'Spending Limit (Amount)', 'Allocated Amount', 'Utilization (%)']
-    
+    headers = [ "Budget Title", "Category Name", "Spending Limit (%)", "Spending Limit (Amount)", "Allocated Amount", "Utilization (%)" ]
+
     CSV.generate(headers: true) do |csv|
       csv << headers
-      
+
       includes(:budget_categories, :budget_projects).find_each do |budget|
         budget.category_utilization.each do |utilization_data|
           category = utilization_data[:category]

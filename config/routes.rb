@@ -1,14 +1,14 @@
 Rails.application.routes.draw do
   # Devise routes for authentication
   devise_for :users
-  
+
   # Root route
-  root 'home#index'
-  
+  root "home#index"
+
   # Home and dashboard routes
-  get 'dashboard', to: 'home#dashboard'
-  get 'home/index'
-  get 'home/dashboard'
+  get "dashboard", to: "home#dashboard"
+  get "home/index"
+  get "home/dashboard"
 
   # Main application routes
   resources :budgets do
@@ -17,13 +17,13 @@ Rails.application.routes.draw do
       patch :close_voting
       get :categories
     end
-    
-    resources :budget_categories, except: [:index] do
+
+    resources :budget_categories, except: [ :index ] do
       member do
         get :utilization
       end
     end
-    
+
     resources :budget_phases do
       member do
         patch :transition
@@ -41,11 +41,11 @@ Rails.application.routes.draw do
       patch :reject
       get :voting_results
     end
-    
-    resources :impact_metrics, only: [:show, :edit, :update]
+
+    resources :impact_metrics, only: [ :show, :edit, :update ]
   end
 
-  resources :votes, only: [:create, :update, :destroy, :edit] do
+  resources :votes, only: [ :create, :update, :destroy, :edit ] do
     collection do
       get :my_votes
     end
@@ -53,38 +53,38 @@ Rails.application.routes.draw do
 
   # Admin namespace
   namespace :admin do
-    root 'dashboard#index'
-    
-    get 'dashboard/index', to: 'dashboard#index'
-    get 'dashboard/analytics', to: 'dashboard#analytics'
-    get 'dashboard/reports', to: 'dashboard#reports'
-    get 'dashboard/category_monitoring', to: 'dashboard#category_monitoring'
-    get 'dashboard/phase_analytics', to: 'dashboard#phase_analytics'
-    
-    resources :budget_categories, only: [:index, :edit, :update] do
+    root "dashboard#index"
+
+    get "dashboard/index", to: "dashboard#index"
+    get "dashboard/analytics", to: "dashboard#analytics"
+    get "dashboard/reports", to: "dashboard#reports"
+    get "dashboard/category_monitoring", to: "dashboard#category_monitoring"
+    get "dashboard/phase_analytics", to: "dashboard#phase_analytics"
+
+    resources :budget_categories, only: [ :index, :edit, :update ] do
       member do
         get :utilization_report
         patch :update_limits
       end
     end
-    
-    resources :budgets, only: [:index, :show, :edit, :update] do
+
+    resources :budgets, only: [ :index, :show, :edit, :update ] do
       member do
         get :monitoring
         get :voting_analytics
         patch :force_transition
       end
     end
-    
-    resources :budget_projects, only: [:index, :show, :edit, :update] do
+
+    resources :budget_projects, only: [ :index, :show, :edit, :update ] do
       member do
         patch :approve
         patch :reject
         get :impact_report
       end
     end
-    
-    resources :users, only: [:index, :show, :edit, :update] do
+
+    resources :users, only: [ :index, :show, :edit, :update ] do
       member do
         patch :toggle_role
       end
@@ -99,14 +99,14 @@ Rails.application.routes.draw do
           get :utilization
         end
       end
-      
+
       resources :budget_projects, only: [] do
         member do
           get :voting_stats
         end
       end
-      
-      resources :votes, only: [:create, :update, :destroy]
+
+      resources :votes, only: [ :create, :update, :destroy ]
     end
   end
 

@@ -1,17 +1,17 @@
 class VotesController < ApplicationController
-  before_action :set_vote, only: [:update, :destroy, :edit]
-  before_action :ensure_vote_owner, only: [:update, :destroy, :edit]
+  before_action :set_vote, only: [ :update, :destroy, :edit ]
+  before_action :ensure_vote_owner, only: [ :update, :destroy, :edit ]
 
   def create
     @budget_project = BudgetProject.find(params[:budget_project_id])
     @current_phase = @budget_project.budget.current_phase
 
     unless @current_phase&.allows_voting?
-      return handle_ajax_error('Voting is not allowed in the current phase.')
+      return handle_ajax_error("Voting is not allowed in the current phase.")
     end
 
     unless user_can_vote?(@budget_project)
-      return handle_ajax_error('You cannot vote on this project.')
+      return handle_ajax_error("You cannot vote on this project.")
     end
 
     @vote = current_user.votes.build(vote_params)
@@ -19,16 +19,16 @@ class VotesController < ApplicationController
     @vote.budget_phase = @current_phase
 
     if @vote.save
-      @message = 'Your vote has been recorded successfully.'
-      
+      @message = "Your vote has been recorded successfully."
+
       # Update project voting cache
       @voting_summary = Vote.voting_summary_for_project(@budget_project)
-      
+
       respond_to do |format|
         format.html { redirect_to @budget_project, success: @message }
-        format.json { 
-          render json: { 
-            success: true, 
+        format.json {
+          render json: {
+            success: true,
             message: @message,
             vote: vote_json(@vote),
             voting_summary: @voting_summary,
@@ -37,7 +37,7 @@ class VotesController < ApplicationController
         }
       end
     else
-      error_message = @vote.errors.full_messages.join(', ')
+      error_message = @vote.errors.full_messages.join(", ")
       handle_ajax_error(error_message)
     end
   end
@@ -45,14 +45,14 @@ class VotesController < ApplicationController
   def update
     if @vote.can_be_modified?
       if @vote.update(vote_params)
-        @message = 'Your vote has been updated successfully.'
+        @message = "Your vote has been updated successfully."
         @voting_summary = Vote.voting_summary_for_project(@vote.budget_project)
-        
+
         respond_to do |format|
           format.html { redirect_to @vote.budget_project, success: @message }
-          format.json { 
-            render json: { 
-              success: true, 
+          format.json {
+            render json: {
+              success: true,
               message: @message,
               vote: vote_json(@vote),
               voting_summary: @voting_summary
@@ -60,27 +60,27 @@ class VotesController < ApplicationController
           }
         end
       else
-        error_message = @vote.errors.full_messages.join(', ')
+        error_message = @vote.errors.full_messages.join(", ")
         handle_ajax_error(error_message)
       end
     else
-      handle_ajax_error('This vote can no longer be modified.')
+      handle_ajax_error("This vote can no longer be modified.")
     end
   end
 
   def destroy
     budget_project = @vote.budget_project
-    
+
     if @vote.can_be_modified?
       @vote.destroy
-      @message = 'Your vote has been removed.'
+      @message = "Your vote has been removed."
       @voting_summary = Vote.voting_summary_for_project(budget_project)
-      
+
       respond_to do |format|
         format.html { redirect_to budget_project, success: @message }
-        format.json { 
-          render json: { 
-            success: true, 
+        format.json {
+          render json: {
+            success: true,
             message: @message,
             voting_summary: @voting_summary,
             project_id: budget_project.id
@@ -88,7 +88,7 @@ class VotesController < ApplicationController
         }
       end
     else
-      handle_ajax_error('This vote can no longer be removed.')
+      handle_ajax_error("This vote can no longer be removed.")
     end
   end
 
@@ -102,7 +102,7 @@ class VotesController < ApplicationController
 
     # User voting statistics
     @user_voting_stats = Vote.voting_summary_for_user(current_user)
-    
+
     # Recent voting activity
     @recent_votes = @votes.limit(5)
 
@@ -124,7 +124,7 @@ class VotesController < ApplicationController
 
   def ensure_vote_owner
     unless current_user == @vote.user
-      redirect_to root_path, alert: 'Access denied.'
+      redirect_to root_path, alert: "Access denied."
     end
   end
 
@@ -138,7 +138,7 @@ class VotesController < ApplicationController
       vote_weight: vote.vote_weight,
       weight_description: vote.weight_description,
       weight_color: vote.weight_color,
-      created_at: vote.created_at.strftime('%B %d, %Y at %I:%M %p'),
+      created_at: vote.created_at.strftime("%B %d, %Y at %I:%M %p"),
       can_be_modified: vote.can_be_modified?
     }
   end
@@ -156,7 +156,7 @@ class VotesController < ApplicationController
           phase_name: vote.budget_phase.name,
           vote_weight: vote.vote_weight,
           weight_description: vote.weight_description,
-          created_at: vote.created_at.strftime('%B %d, %Y'),
+          created_at: vote.created_at.strftime("%B %d, %Y"),
           can_be_modified: vote.can_be_modified?
         }
       end

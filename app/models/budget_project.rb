@@ -1,4 +1,4 @@
-require 'csv'
+require "csv"
 
 class BudgetProject < ApplicationRecord
   belongs_to :budget_category
@@ -16,29 +16,29 @@ class BudgetProject < ApplicationRecord
 
   # Enums
   enum status: {
-    draft: 'draft',
-    pending: 'pending',
-    approved: 'approved',
-    rejected: 'rejected',
-    implemented: 'implemented'
+    draft: "draft",
+    pending: "pending",
+    approved: "approved",
+    rejected: "rejected",
+    implemented: "implemented"
   }
 
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
   scope :by_status, ->(status) { where(status: status) }
-  scope :approved_or_implemented, -> { where(status: ['approved', 'implemented']) }
-  scope :votable, -> { where(status: ['pending', 'approved']) }
+  scope :approved_or_implemented, -> { where(status: [ "approved", "implemented" ]) }
+  scope :votable, -> { where(status: [ "pending", "approved" ]) }
   scope :by_category, ->(category_id) { where(budget_category_id: category_id) }
   scope :search_by_term, ->(query) {
-    where('title ILIKE ? OR description ILIKE ?', "%#{query}%", "%#{query}%")
+    where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
   }
   scope :with_impact_data, -> { joins(:impact_metric) }
-  scope :min_beneficiaries, ->(count) { with_impact_data.where('impact_metrics.estimated_beneficiaries >= ?', count) }
-  scope :max_timeline, ->(months) { with_impact_data.where('impact_metrics.timeline_months <= ?', months) }
-  scope :min_sustainability, ->(score) { with_impact_data.where('impact_metrics.sustainability_score >= ?', score) }
-  
-  scope :within_budget, ->(amount) { where('amount <= ?', amount) }
-  scope :popular, -> { joins(:votes).group('budget_projects.id').order('COUNT(votes.id) DESC') }
+  scope :min_beneficiaries, ->(count) { with_impact_data.where("impact_metrics.estimated_beneficiaries >= ?", count) }
+  scope :max_timeline, ->(months) { with_impact_data.where("impact_metrics.timeline_months <= ?", months) }
+  scope :min_sustainability, ->(score) { with_impact_data.where("impact_metrics.sustainability_score >= ?", score) }
+
+  scope :within_budget, ->(amount) { where("amount <= ?", amount) }
+  scope :popular, -> { joins(:votes).group("budget_projects.id").order("COUNT(votes.id) DESC") }
 
   # Instance methods
   def vote_count
@@ -91,18 +91,18 @@ class BudgetProject < ApplicationRecord
 
   def status_badge_class
     case status
-    when 'draft'
-      'secondary'
-    when 'pending'
-      'primary'
-    when 'approved'
-      'success'
-    when 'rejected'
-      'danger'
-    when 'implemented'
-      'info'
+    when "draft"
+      "secondary"
+    when "pending"
+      "primary"
+    when "approved"
+      "success"
+    when "rejected"
+      "danger"
+    when "implemented"
+      "info"
     else
-      'secondary'
+      "secondary"
     end
   end
 
@@ -115,8 +115,8 @@ class BudgetProject < ApplicationRecord
   end
 
   def impact_summary
-    return 'No impact assessment' unless impact_metric
-    
+    return "No impact assessment" unless impact_metric
+
     "Benefits #{impact_metric.estimated_beneficiaries} people"
   end
 
@@ -133,11 +133,11 @@ class BudgetProject < ApplicationRecord
   def self.to_csv_with_impact
     CSV.generate(headers: true) do |csv|
       csv << [
-        'Project ID', 'Project Title', 'Status', 'Amount',
-        'Estimated Beneficiaries', 'Timeline (Months)', 'Sustainability Score',
-        'Environmental Impact', 'Social Impact', 'Economic Impact'
+        "Project ID", "Project Title", "Status", "Amount",
+        "Estimated Beneficiaries", "Timeline (Months)", "Sustainability Score",
+        "Environmental Impact", "Social Impact", "Economic Impact"
       ]
-      
+
       includes(:impact_metric).find_each do |project|
         csv << [
           project.id,

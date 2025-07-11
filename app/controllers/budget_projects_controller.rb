@@ -1,7 +1,7 @@
 class BudgetProjectsController < ApplicationController
-  before_action :set_budget_project, only: [:show, :edit, :update, :destroy, :vote, :approve, :reject, :voting_results]
-  before_action :ensure_project_owner_or_admin, only: [:edit, :update, :destroy]
-  before_action :ensure_admin!, only: [:approve, :reject]
+  before_action :set_budget_project, only: [ :show, :edit, :update, :destroy, :vote, :approve, :reject, :voting_results ]
+  before_action :ensure_project_owner_or_admin, only: [ :edit, :update, :destroy ]
+  before_action :ensure_admin!, only: [ :approve, :reject ]
 
   def index
     @budget_projects = BudgetProject.includes(:user, :budget_category, :votes, :impact_metric).all
@@ -31,16 +31,16 @@ class BudgetProjectsController < ApplicationController
 
     # Sorting
     case params[:sort_by]
-    when 'votes'
+    when "votes"
       @budget_projects = @budget_projects.popular
-    when 'amount'
+    when "amount"
       @budget_projects = @budget_projects.order(amount: :desc)
-    when 'title'
+    when "title"
       @budget_projects = @budget_projects.order(title: :asc)
-    when 'sustainability'
-      @budget_projects = @budget_projects.joins(:impact_metric).order('impact_metrics.sustainability_score DESC')
-    when 'beneficiaries'
-      @budget_projects = @budget_projects.joins(:impact_metric).order('impact_metrics.estimated_beneficiaries DESC')
+    when "sustainability"
+      @budget_projects = @budget_projects.joins(:impact_metric).order("impact_metrics.sustainability_score DESC")
+    when "beneficiaries"
+      @budget_projects = @budget_projects.joins(:impact_metric).order("impact_metrics.estimated_beneficiaries DESC")
     else
       @budget_projects = @budget_projects.recent
     end
@@ -57,7 +57,7 @@ class BudgetProjectsController < ApplicationController
 
     # Filter options
     @available_budgets = Budget.active.includes(:budget_categories)
-    @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: 'active' })
+    @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: "active" })
 
     respond_to do |format|
       format.html
@@ -70,7 +70,7 @@ class BudgetProjectsController < ApplicationController
     @votes = @budget_project.votes.includes(:user, :budget_phase).recent
     @user_vote = current_user.votes.find_by(budget_project: @budget_project)
     @voting_summary = Vote.voting_summary_for_project(@budget_project)
-    
+
     # Related projects
     @related_projects = @budget_project.budget_category
                                       .budget_projects
@@ -92,30 +92,30 @@ class BudgetProjectsController < ApplicationController
     @budget_category = BudgetCategory.find(params[:budget_category_id]) if params[:budget_category_id]
     @budget_project = BudgetProject.new(budget_category: @budget_category)
     @budget_project.build_impact_metric
-    @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: ['draft', 'active'] })
+    @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: [ "draft", "active" ] })
   end
 
   def create
     @budget_project = current_user.budget_projects.build(budget_project_params)
-    
+
     if @budget_project.save
-      redirect_to @budget_project, success: 'Project was successfully created.'
+      redirect_to @budget_project, success: "Project was successfully created."
     else
-      @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: ['draft', 'active'] })
+      @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: [ "draft", "active" ] })
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
-    @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: ['draft', 'active'] })
+    @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: [ "draft", "active" ] })
     @impact_metric = @budget_project.impact_metric
   end
 
   def update
     if @budget_project.update(budget_project_params)
-      redirect_to @budget_project, success: 'Project was successfully updated.'
+      redirect_to @budget_project, success: "Project was successfully updated."
     else
-      @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: ['draft', 'active'] })
+      @available_categories = BudgetCategory.joins(:budget).where(budgets: { status: [ "draft", "active" ] })
       render :edit, status: :unprocessable_entity
     end
   end
@@ -123,18 +123,18 @@ class BudgetProjectsController < ApplicationController
   def destroy
     budget_category = @budget_project.budget_category
     @budget_project.destroy
-    redirect_to budget_projects_path, success: 'Project was successfully deleted.'
+    redirect_to budget_projects_path, success: "Project was successfully deleted."
   end
 
   def vote
     current_phase = @budget_project.budget.current_phase
-    
+
     unless current_phase&.allows_voting?
-      return redirect_to @budget_project, alert: 'Voting is not allowed in the current phase.'
+      return redirect_to @budget_project, alert: "Voting is not allowed in the current phase."
     end
 
     unless user_can_vote?(@budget_project)
-      return redirect_to @budget_project, alert: 'You cannot vote on this project.'
+      return redirect_to @budget_project, alert: "You cannot vote on this project."
     end
 
     @vote = current_user.votes.build(
@@ -144,13 +144,13 @@ class BudgetProjectsController < ApplicationController
     )
 
     if @vote.save
-      @message = 'Your vote has been recorded successfully.'
+      @message = "Your vote has been recorded successfully."
       respond_to do |format|
         format.html { redirect_to @budget_project, success: @message }
         format.json { render json: { success: true, message: @message, vote: @vote } }
       end
     else
-      error_message = @vote.errors.full_messages.join(', ')
+      error_message = @vote.errors.full_messages.join(", ")
       respond_to do |format|
         format.html { redirect_to @budget_project, alert: error_message }
         format.json { render json: { success: false, error: error_message }, status: :unprocessable_entity }
@@ -160,18 +160,18 @@ class BudgetProjectsController < ApplicationController
 
   def approve
     if @budget_project.approve!
-      redirect_to @budget_project, success: 'Project has been approved.'
+      redirect_to @budget_project, success: "Project has been approved."
     else
-      redirect_to @budget_project, alert: 'Could not approve project. Check budget limits.'
+      redirect_to @budget_project, alert: "Could not approve project. Check budget limits."
     end
   end
 
   def reject
     reason = params[:reason]
     if @budget_project.reject!(reason)
-      redirect_to @budget_project, success: 'Project has been rejected.'
+      redirect_to @budget_project, success: "Project has been rejected."
     else
-      redirect_to @budget_project, alert: 'Could not reject project.'
+      redirect_to @budget_project, alert: "Could not reject project."
     end
   end
 
@@ -188,13 +188,13 @@ class BudgetProjectsController < ApplicationController
 
   def preview_vote
     current_phase = @budget_project.budget.current_phase
-    
+
     unless current_phase&.allows_voting?
-      return render json: { valid: false, message: 'Voting is not allowed in the current phase.' }
+      return render json: { valid: false, message: "Voting is not allowed in the current phase." }
     end
-    
+
     if current_user.has_voted_for?(@budget_project)
-      return render json: { valid: true, message: 'You have already voted, but you can change your vote.' }
+      return render json: { valid: true, message: "You have already voted, but you can change your vote." }
     end
 
     vote = Vote.new(
@@ -205,9 +205,9 @@ class BudgetProjectsController < ApplicationController
     )
 
     if vote.valid?
-      render json: { valid: true, message: 'This vote is valid.' }
+      render json: { valid: true, message: "This vote is valid." }
     else
-      render json: { valid: false, message: vote.errors.full_messages.join(', ') }
+      render json: { valid: false, message: vote.errors.full_messages.join(", ") }
     end
   end
 
@@ -219,7 +219,7 @@ class BudgetProjectsController < ApplicationController
 
   def ensure_project_owner_or_admin
     unless current_user.admin? || @budget_project.user == current_user
-      redirect_to @budget_project, alert: 'Access denied.'
+      redirect_to @budget_project, alert: "Access denied."
     end
   end
 

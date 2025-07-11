@@ -33,7 +33,7 @@ participants = [
   },
   {
     name: "Elena Rodriguez",
-    email: "elena@example.com", 
+    email: "elena@example.com",
     password: "password123",
     password_confirmation: "password123",
     role: "participant"
@@ -41,7 +41,7 @@ participants = [
   {
     name: "David Kim",
     email: "david@example.com",
-    password: "password123", 
+    password: "password123",
     password_confirmation: "password123",
     role: "participant"
   },
@@ -49,7 +49,7 @@ participants = [
     name: "Aisha Patel",
     email: "aisha@example.com",
     password: "password123",
-    password_confirmation: "password123", 
+    password_confirmation: "password123",
     role: "participant"
   },
   {
@@ -83,7 +83,7 @@ participants = [
 ]
 
 participant_users = participants.map { |attrs| User.create!(attrs) }
-all_users = [admin] + participant_users
+all_users = [ admin ] + participant_users
 
 puts "✅ Created #{all_users.count} users (1 admin, #{participant_users.count} participants)"
 
@@ -106,7 +106,7 @@ budgets_data = [
     total_amount: 1_800_000,
     start_date: 2.weeks.ago,
     end_date: 6.weeks.from_now,
-    status: "active", 
+    status: "active",
     user: admin
   },
   {
@@ -145,7 +145,7 @@ categories_data = [
       budget: budgets[0]
     },
     {
-      name: "Social Programs", 
+      name: "Social Programs",
       description: "Education, healthcare, community centers, and social support services",
       spending_limit_percentage: 30,
       budget: budgets[0]
@@ -251,7 +251,7 @@ puts "📅 Creating budget phases..."
   {
     name: "Project Review",
     description: "Technical review and feasibility assessment of submitted projects",
-    phase_type: "review", 
+    phase_type: "review",
     start_date: 22.days.ago,
     end_date: 8.days.ago,
     status: "completed",
@@ -352,7 +352,7 @@ projects_data = [
     title: "New Public Library Branch",
     description: "Construction of a modern library branch in the north district featuring computer labs, study rooms, children's reading area, and community meeting spaces.",
     amount: 520_000,
-    status: "pending", 
+    status: "pending",
     budget_category: all_categories.find { |c| c.name == "Social Programs" && c.budget == budgets[0] },
     user: participant_users[4]
   },
@@ -381,7 +381,7 @@ projects_data = [
     user: participant_users[7]
   },
 
-  # Green Infrastructure Initiative projects  
+  # Green Infrastructure Initiative projects
   {
     title: "Solar Panel Installation Program",
     description: "Installation of solar panels on 50 public buildings including schools, libraries, and municipal offices to reduce carbon footprint and energy costs.",
@@ -551,14 +551,14 @@ vote_count = 0
 participant_users.each do |user|
   # Each user votes on 3-7 random projects
   projects_to_vote = votable_projects.sample(rand(3..7))
-  
+
   projects_to_vote.each do |project|
     # Get the current active phase for this project's budget
     current_phase = project.budget_category.budget.current_phase
     next unless current_phase&.allows_voting?
-    
+
     # Create vote with random weight
-    vote_weight = [-3, -2, -1, 1, 2, 3, 4, 5].sample
+    vote_weight = [ -3, -2, -1, 1, 2, 3, 4, 5 ].sample
     justification = if vote_weight > 0
       [
         "This project would greatly benefit our community and addresses a real need.",
@@ -569,13 +569,13 @@ participant_users.each do |user|
       ].sample
     else
       [
-        "I have concerns about the cost-benefit ratio of this project.", 
+        "I have concerns about the cost-benefit ratio of this project.",
         "While well-intentioned, I think our funds could be better allocated elsewhere.",
         "This project may not address our most pressing community needs.",
         "I question whether this is the right priority at this time."
       ].sample
     end
-    
+
     Vote.create!(
       user: user,
       budget_project: project,

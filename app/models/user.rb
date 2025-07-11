@@ -1,4 +1,4 @@
-require 'csv'
+require "csv"
 
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
@@ -17,17 +17,17 @@ class User < ApplicationRecord
 
   # Enums
   enum role: {
-    participant: 'participant',
-    admin: 'admin'
+    participant: "participant",
+    admin: "admin"
   }
 
   # Scopes
-  scope :participants, -> { where(role: 'participant') }
-  scope :admins, -> { where(role: 'admin') }
+  scope :participants, -> { where(role: "participant") }
+  scope :admins, -> { where(role: "admin") }
 
   # Instance methods
   def full_name
-    name.present? ? name : email.split('@').first.humanize
+    name.present? ? name : email.split("@").first.humanize
   end
 
   def display_name
@@ -50,11 +50,11 @@ class User < ApplicationRecord
 
   def voting_stats_for_budget(budget)
     budget_votes = voted_projects_in_budget(budget)
-    
+
     {
       total_votes: budget_votes.count,
-      positive_votes: budget_votes.where('vote_weight > 0').count,
-      negative_votes: budget_votes.where('vote_weight < 0').count,
+      positive_votes: budget_votes.where("vote_weight > 0").count,
+      negative_votes: budget_votes.where("vote_weight < 0").count,
       average_weight: budget_votes.average(:vote_weight)&.round(2) || 0
     }
   end
@@ -71,15 +71,15 @@ class User < ApplicationRecord
     total_votes = votes.count
     case total_votes
     when 0
-      'New Member'
+      "New Member"
     when 1..5
-      'Casual Participant'
+      "Casual Participant"
     when 6..15
-      'Active Participant'
+      "Active Participant"
     when 16..30
-      'Engaged Citizen'
+      "Engaged Citizen"
     else
-      'Community Champion'
+      "Community Champion"
     end
   end
 
@@ -87,7 +87,7 @@ class User < ApplicationRecord
     # Get recent votes and projects
     recent_votes = votes.includes(:budget_project).recent.limit(limit)
     recent_projects = budget_projects.recent.limit(limit)
-    
+
     # Combine and sort by created_at
     (recent_votes.to_a + recent_projects.to_a)
       .sort_by(&:created_at)
@@ -102,18 +102,18 @@ class User < ApplicationRecord
   def favorite_categories
     # Find categories user votes on most
     votes.joins(budget_project: :budget_category)
-         .group('budget_categories.name')
-         .order('COUNT(*) DESC')
+         .group("budget_categories.name")
+         .order("COUNT(*) DESC")
          .limit(3)
-         .pluck('budget_categories.name')
+         .pluck("budget_categories.name")
   end
 
   def self.to_csv
     attributes = %w[id name email role created_at]
-    
+
     CSV.generate(headers: true) do |csv|
       csv << attributes.map(&:humanize)
-      
+
       all.each do |user|
         csv << user.attributes.values_at(*attributes)
       end

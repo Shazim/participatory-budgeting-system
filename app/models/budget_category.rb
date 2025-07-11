@@ -1,6 +1,6 @@
 class BudgetCategory < ApplicationRecord
   belongs_to :budget
-  
+
   # Associations
   has_many :budget_projects, dependent: :destroy
   has_many :votes, through: :budget_projects
@@ -8,9 +8,9 @@ class BudgetCategory < ApplicationRecord
   # Validations
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }
   validates :description, presence: true, length: { minimum: 5, maximum: 500 }
-  validates :spending_limit_percentage, presence: true, 
-            numericality: { 
-              greater_than: 0, 
+  validates :spending_limit_percentage, presence: true,
+            numericality: {
+              greater_than: 0,
               less_than_or_equal_to: 100,
               message: "must be between 0 and 100"
             }
@@ -18,10 +18,10 @@ class BudgetCategory < ApplicationRecord
 
   # Scopes
   scope :with_projects, -> { joins(:budget_projects) }
-  scope :over_limit, -> { 
+  scope :over_limit, -> {
     joins(:budget_projects, :budget)
-      .group('budget_categories.id')
-      .having('SUM(budget_projects.amount) > (budgets.total_amount * budget_categories.spending_limit_percentage / 100)')
+      .group("budget_categories.id")
+      .having("SUM(budget_projects.amount) > (budgets.total_amount * budget_categories.spending_limit_percentage / 100)")
   }
 
   # Instance methods
@@ -30,11 +30,11 @@ class BudgetCategory < ApplicationRecord
   end
 
   def total_allocated_amount
-    budget_projects.where(status: 'approved').sum(:amount) || 0
+    budget_projects.where(status: "approved").sum(:amount) || 0
   end
 
   def total_proposed_amount
-    budget_projects.where(status: ['pending', 'approved']).sum(:amount) || 0
+    budget_projects.where(status: [ "pending", "approved" ]).sum(:amount) || 0
   end
 
   def remaining_budget
@@ -60,27 +60,27 @@ class BudgetCategory < ApplicationRecord
 
   def provisionally_funded_projects_amount
     project_ids = budget_projects
-      .where(status: 'pending')
+      .where(status: "pending")
       .joins(:votes)
-      .group('budget_projects.id')
-      .having('SUM(votes.vote_weight) > 0')
+      .group("budget_projects.id")
+      .having("SUM(votes.vote_weight) > 0")
       .pluck(:id)
     BudgetProject.where(id: project_ids).sum(:amount)
   end
 
   def projects_by_status
     {
-      pending: budget_projects.where(status: 'pending').count,
-      approved: budget_projects.where(status: 'approved').count,
-      rejected: budget_projects.where(status: 'rejected').count
+      pending: budget_projects.where(status: "pending").count,
+      approved: budget_projects.where(status: "approved").count,
+      rejected: budget_projects.where(status: "rejected").count
     }
   end
 
   def top_voted_projects(limit = 5)
     budget_projects
       .joins(:votes)
-      .group('budget_projects.id')
-      .order('COUNT(votes.id) DESC')
+      .group("budget_projects.id")
+      .order("COUNT(votes.id) DESC")
       .limit(limit)
   end
 
@@ -92,11 +92,11 @@ class BudgetCategory < ApplicationRecord
   def status_color
     case utilization_percentage
     when 0...75
-      'success'
+      "success"
     when 75...90
-      'warning'
+      "warning"
     else
-      'danger'
+      "danger"
     end
   end
 end

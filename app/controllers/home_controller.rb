@@ -16,7 +16,7 @@ class HomeController < ApplicationController
     @active_budgets = Budget.active.includes(:budget_categories, :budget_phases, :budget_projects)
     @user_votes = current_user.votes.includes(:budget_project, :budget_phase).recent.limit(5)
     @user_projects = current_user.budget_projects.includes(:budget_category, :votes).recent.limit(5)
-    
+
     # Statistics for current user
     @user_stats = {
       total_votes: current_user.votes.count,
@@ -27,11 +27,11 @@ class HomeController < ApplicationController
 
     # Current active phase information
     @current_phases = BudgetPhase.active.includes(:budget).limit(3)
-    
+
     # Recent activity
     @recent_projects = BudgetProject.includes(:user, :budget_category)
                                   .joins(budget_category: :budget)
-                                  .where(budgets: { status: 'active' })
+                                  .where(budgets: { status: "active" })
                                   .recent.limit(5)
 
     # Budget utilization overview
@@ -45,7 +45,7 @@ class HomeController < ApplicationController
     # Voting opportunities
     @voting_opportunities = BudgetProject.votable
                                        .joins(budget_category: :budget)
-                                       .where(budgets: { status: 'active' })
+                                       .where(budgets: { status: "active" })
                                        .where.not(id: current_user.votes.select(:budget_project_id))
                                        .includes(:budget_category, :impact_metric)
                                        .limit(5)

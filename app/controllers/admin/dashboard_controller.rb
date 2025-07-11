@@ -44,19 +44,19 @@ class Admin::DashboardController < ApplicationController
 
   def generate_csv_report
     case params[:report_type]
-    when 'all_projects'
+    when "all_projects"
       BudgetProject.to_csv
-    when 'voting_results'
+    when "voting_results"
       Vote.to_csv
-    when 'user_list'
+    when "user_list"
       User.to_csv
-    when 'budget_utilization'
+    when "budget_utilization"
       Budget.to_csv
-    when 'impact_report'
+    when "impact_report"
       BudgetProject.to_csv_with_impact
     else
       # Handle invalid report type
-      ''
+      ""
     end
   end
 end

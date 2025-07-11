@@ -2,7 +2,7 @@ namespace :budget do
   desc "Transition budget phases automatically based on dates"
   task transition_phases: :environment do
     puts "Running budget phase transition task..."
-    
+
     # Transition pending phases to active if their start date has arrived
     BudgetPhase.pending.where("start_date <= ?", Date.current).find_each do |phase|
       puts "Activating phase '#{phase.name}' for budget '#{phase.budget.title}'..."
@@ -17,4 +17,4 @@ namespace :budget do
 
     puts "Phase transition task completed."
   end
-end 
+end

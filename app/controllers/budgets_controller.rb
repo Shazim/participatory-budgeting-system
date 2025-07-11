@@ -1,6 +1,6 @@
 class BudgetsController < ApplicationController
-  before_action :set_budget, only: [:show, :edit, :update, :destroy, :activate, :close_voting]
-  before_action :ensure_admin!, except: [:index, :show]
+  before_action :set_budget, only: [ :show, :edit, :update, :destroy, :activate, :close_voting ]
+  before_action :ensure_admin!, except: [ :index, :show ]
 
   def index
     @budgets = Budget.includes(:user, :budget_categories, :budget_phases)
@@ -8,8 +8,8 @@ class BudgetsController < ApplicationController
                     .page(params[:page])
 
     @active_budgets = @budgets.active
-    @draft_budgets = @budgets.where(status: 'draft')
-    @completed_budgets = @budgets.where(status: 'completed')
+    @draft_budgets = @budgets.where(status: "draft")
+    @completed_budgets = @budgets.where(status: "completed")
 
     respond_to do |format|
       format.html
@@ -22,7 +22,7 @@ class BudgetsController < ApplicationController
     @budget_phases = @budget.budget_phases.chronological
     @current_phase = @budget.current_phase
     @next_phase = @budget.next_phase
-    
+
     # Budget statistics
     @total_projects = @budget.budget_projects.count
     @approved_projects = @budget.budget_projects.approved.count
@@ -30,10 +30,10 @@ class BudgetsController < ApplicationController
     @unique_voters = @budget.votes.distinct.count(:user_id)
     @total_allocated = @budget.total_allocated_amount
     @remaining_budget = @budget.remaining_amount
-    
+
     # Category utilization
     @category_utilization = @budget.category_utilization
-    
+
     # Voting statistics by phase
     @phase_stats = @budget_phases.map do |phase|
       {
@@ -45,8 +45,8 @@ class BudgetsController < ApplicationController
     # Top voted projects
     @top_projects = @budget.budget_projects
                           .joins(:votes)
-                          .group('budget_projects.id')
-                          .order('COUNT(votes.id) DESC')
+                          .group("budget_projects.id")
+                          .order("COUNT(votes.id) DESC")
                           .includes(:budget_category, :user)
                           .limit(5)
 
@@ -66,7 +66,7 @@ class BudgetsController < ApplicationController
 
     if @budget.save
       create_default_categories if params[:create_default_categories]
-      redirect_to @budget, success: 'Budget was successfully created.'
+      redirect_to @budget, success: "Budget was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -79,7 +79,7 @@ class BudgetsController < ApplicationController
 
   def update
     if @budget.update(budget_params)
-      redirect_to @budget, success: 'Budget was successfully updated.'
+      redirect_to @budget, success: "Budget was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -87,23 +87,23 @@ class BudgetsController < ApplicationController
 
   def destroy
     @budget.destroy
-    redirect_to budgets_path, success: 'Budget was successfully deleted.'
+    redirect_to budgets_path, success: "Budget was successfully deleted."
   end
 
   def activate
-    if @budget.update(status: 'active')
-      @budget.budget_phases.first&.update(status: 'active')
-      redirect_to @budget, success: 'Budget has been activated.'
+    if @budget.update(status: "active")
+      @budget.budget_phases.first&.update(status: "active")
+      redirect_to @budget, success: "Budget has been activated."
     else
-      redirect_to @budget, alert: 'Could not activate budget.'
+      redirect_to @budget, alert: "Could not activate budget."
     end
   end
 
   def close_voting
-    if @budget.update(status: 'voting_closed')
-      redirect_to @budget, success: 'Voting has been closed for this budget.'
+    if @budget.update(status: "voting_closed")
+      redirect_to @budget, success: "Voting has been closed for this budget."
     else
-      redirect_to @budget, alert: 'Could not close voting.'
+      redirect_to @budget, alert: "Could not close voting."
     end
   end
 
@@ -121,16 +121,16 @@ class BudgetsController < ApplicationController
   def budget_params
     params.require(:budget).permit(
       :title, :description, :total_amount, :start_date, :end_date, :status,
-      budget_categories_attributes: [:id, :name, :description, :spending_limit_percentage, :_destroy]
+      budget_categories_attributes: [ :id, :name, :description, :spending_limit_percentage, :_destroy ]
     )
   end
 
   def create_default_categories
     default_categories = [
-      { name: 'Infrastructure', description: 'Roads, buildings, and public facilities', spending_limit_percentage: 40 },
-      { name: 'Social Programs', description: 'Education, healthcare, and community services', spending_limit_percentage: 30 },
-      { name: 'Environment', description: 'Parks, green spaces, and environmental initiatives', spending_limit_percentage: 20 },
-      { name: 'Technology', description: 'Digital infrastructure and innovation', spending_limit_percentage: 10 }
+      { name: "Infrastructure", description: "Roads, buildings, and public facilities", spending_limit_percentage: 40 },
+      { name: "Social Programs", description: "Education, healthcare, and community services", spending_limit_percentage: 30 },
+      { name: "Environment", description: "Parks, green spaces, and environmental initiatives", spending_limit_percentage: 20 },
+      { name: "Technology", description: "Digital infrastructure and innovation", spending_limit_percentage: 10 }
     ]
 
     default_categories.each do |category_attrs|
