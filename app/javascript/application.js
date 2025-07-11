@@ -8,7 +8,7 @@ import "Chart.bundle";
 import "bootstrap";
 
 // Custom JavaScript for Participatory Budgeting
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("turbo:load", function () {
   // Initialize tooltips
   var tooltipTriggerList = [].slice.call(
     document.querySelectorAll('[data-bs-toggle="tooltip"]')

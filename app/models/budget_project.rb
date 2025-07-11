@@ -30,7 +30,7 @@ class BudgetProject < ApplicationRecord
   scope :votable, -> { where(status: [ "pending", "approved" ]) }
   scope :by_category, ->(category_id) { where(budget_category_id: category_id) }
   scope :search_by_term, ->(query) {
-    where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+    where('budget_projects.title ILIKE :q OR budget_projects.description ILIKE :q', q: "%#{query}%")
   }
   scope :with_impact_data, -> { joins(:impact_metric) }
   scope :min_beneficiaries, ->(count) { with_impact_data.where("impact_metrics.estimated_beneficiaries >= ?", count) }
@@ -38,7 +38,12 @@ class BudgetProject < ApplicationRecord
   scope :min_sustainability, ->(score) { with_impact_data.where("impact_metrics.sustainability_score >= ?", score) }
 
   scope :within_budget, ->(amount) { where("amount <= ?", amount) }
-  scope :popular, -> { joins(:votes).group("budget_projects.id").order("COUNT(votes.id) DESC") }
+  scope :popular, -> {
+    left_joins(:votes)
+      .group("budget_projects.id")
+      .order(Arel.sql("COUNT(votes.id) DESC"))
+      .select("budget_projects.*")
+  }
 
   # Instance methods
   def vote_count
